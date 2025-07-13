@@ -1,0 +1,1 @@
+ ffmpeg -i music.wav -codec:a libmp3lame -qscale:a 9 music.mp3
