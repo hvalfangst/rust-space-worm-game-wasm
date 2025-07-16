@@ -1,0 +1,4 @@
+/pkg/*.js
+  Content-Type: application/javascript
+/pkg/*.wasm
+  Content-Type: application/wasm
