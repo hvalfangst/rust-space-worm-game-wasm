@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Space Worm Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+            color: #fff;
+        }
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(64, 224, 208, 0.3);
+            border: 2px solid rgba(64, 224, 208, 0.5);
+        }
+        canvas {
+            border: 3px solid #40e0d0;
+            border-radius: 10px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            box-shadow: 0 0 20px rgba(64, 224, 208, 0.4);
+        }
+        .game-info-section {
+            color: white;
+            margin-bottom: 25px;
+            background: rgba(64, 224, 208, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(64, 224, 208, 0.3);
+            text-align: center;
+        }
+        .controls {
+            color: white;
+            margin-top: 25px;
+            background: rgba(64, 224, 208, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(64, 224, 208, 0.3);
+            text-align: center;
+        }
+        .controls-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .controls h2 {
+            margin-top: 0;
+            color: #40e0d0;
+            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
+        }
+        .game-info {
+            text-align: center;
+        }
+        .game-info h2 {
+            margin-top: 0;
+            color: #40e0d0;
+            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
+        }
+        .game-info ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .game-info li {
+            margin: 5px 0;
+            padding: 8px 15px;
+            background: rgba(64, 224, 208, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(64, 224, 208, 0.3);
+            color: #ccc;
+        }
+        .game-info .highlight {
+            color: #40e0d0;
+            font-weight: bold;
+        }
+        .key-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .key {
+            display: inline-block;
+            min-width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #40e0d0;
+            border-radius: 8px;
+            color: #40e0d0;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px rgba(64, 224, 208, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 3px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        .key:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(64, 224, 208, 0.3), inset 0 1px 3px rgba(255, 255, 255, 0.1);
+        }
+        .key.space {
+            min-width: 120px;
+        }
+        .key-description {
+            margin-left: 15px;
+            color: #ccc;
+            font-size: 16px;
+        }
+        .wasd-keys {
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .wasd-row {
+            display: flex;
+            justify-content: center;
+            margin: 2px 0;
+        }
+        .info {
+            color: #aaa;
+            margin-top: 20px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .info h3 {
+            color: #40e0d0;
+            margin-top: 0;
+        }
+        .loading {
+            color: #40e0d0;
+            font-size: 18px;
+            text-shadow: 0 0 10px rgba(64, 224, 208, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div id="loading" class="loading">🎮 Loading Space Worm Game...</div>
+        
+        <!-- Space Worm Section (Above Game) -->
+        <div class="game-info-section" style="display: none;" id="game-info">
+            <div class="game-info">
+                <h2>🐛 Space Worm</h2>
+                <ul>
+                    <li>🍎 <span class="highlight">Eat food</span> to grow</li>
+                    <li>💀 <span class="highlight">Avoid collision</span> with your body</li>
+                    <li>🎯 Every <span class="highlight">1000 points</span> you may select a perk</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Game Canvas will be inserted here -->
+        
+        <!-- Controls Section (Below Game) -->
+        <div class="controls" style="display: none;" id="controls">
+            <div class="controls-center">
+                <h2>🎮 Controls</h2>
+                
+                <div class="key-group">
+                    <div class="wasd-keys">
+                        <div class="wasd-row">
+                            <div class="key">W</div>
+                        </div>
+                        <div class="wasd-row">
+                            <div class="key">A</div>
+                            <div class="key">S</div>
+                            <div class="key">D</div>
+                        </div>
+                    </div>
+                    <div class="key-description">Move snake/Select perk</div>
+                </div>
+                
+                <div class="key-group">
+                    <div class="key space">SPACE</div>
+                    <div class="key-description">Restart Game (On Death)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { WasmGame } from '../pkg/space_worm.js';
+
+        async function run() {
+            try {
+                console.log('Initializing WASM...');
+                await init();
+                console.log('WASM initialized successfully');
+
+                console.log('Loading sprites...');
+                document.getElementById('loading').textContent = 'Loading sprites...';
+                
+                // Load all sprites BEFORE creating the game instance
+                try {
+                    // Import the standalone functions from the WASM module
+                    const {load_sprite_frame_from_url } = await import('../pkg/space_worm.js');
+
+                    // Load head sprites (4 frames from 64x16 sheet)
+                    const headFrames = [];
+                    for (let i = 0; i < 4; i++) {
+                        const headData = await load_sprite_frame_from_url('../assets/sprites/head.png', 16, 16, i);
+                        const headWidth = headData[0];
+                        const headHeight = headData[1];
+                        const headPixels = Array.from(headData.slice(2));
+                        headFrames.push({ width: headWidth, height: headHeight, pixels: headPixels });
+                    }
+
+                    // Load body sprites (3 frames from 18x6 sheet)
+                    const bodyFrames = [];
+                    for (let i = 0; i < 3; i++) {
+                        const bodyData = await load_sprite_frame_from_url('../assets/sprites/body.png', 6, 6, i);
+                        const bodyWidth = bodyData[0];
+                        const bodyHeight = bodyData[1];
+                        const bodyPixels = Array.from(bodyData.slice(2));
+                        bodyFrames.push({ width: bodyWidth, height: bodyHeight, pixels: bodyPixels });
+                    }
+
+                    // Load tail sprites - 2 frames from 12x6 sprite sheet
+                    const tailFrames = [];
+                    for (let i = 0; i < 2; i++) {
+                        const tailData = await load_sprite_frame_from_url('../assets/sprites/tail.png', 6, 6, i);
+                        const tailWidth = tailData[0];
+                        const tailHeight = tailData[1];
+                        const tailPixels = Array.from(tailData.slice(2));
+                        tailFrames.push({ width: tailWidth, height: tailHeight, pixels: tailPixels });
+                    }
+
+                    const tailData1 = await load_sprite_frame_from_url('../assets/sprites/tail.png', 6, 6, 1);
+                    const tailWidth1 = tailData1[0];
+                    const tailHeight1 = tailData1[1];
+                    const tailPixels1 = Array.from(tailData1.slice(2));
+
+                    // Load food sprites - 2 frames from 16x16 sprite sheet
+                    const foodFrames = []
+                    for (let i = 0; i < 2; i++) {
+                        const foodData = await load_sprite_frame_from_url('../assets/sprites/food.png', 16, 16, i);
+                        const foodWidth = foodData[0];
+                        const foodHeight = foodData[1];
+                        const foodPixels = Array.from(foodData.slice(2));
+                        foodFrames.push({width: foodWidth, height: foodHeight, pixels: foodPixels });
+                    }
+
+                    // Load background sprites - 6 frames from 256x224 sprite sheet
+                    const bgFrames = [];
+                    for (let i = 0; i < 6; i++) {
+                        const bgData = await load_sprite_frame_from_url('../assets/sprites/layer_0.png', 256, 224, i);
+                        const bgWidth = bgData[0];
+                        const bgHeight = bgData[1];
+                        const bgPixels = Array.from(bgData.slice(2));
+                        bgFrames.push({ width: bgWidth, height: bgHeight, pixels: bgPixels });
+                    }
+                    
+                    // Load globe sprites - 6 frames from 256x224 sprite sheet
+                    const globeFrames = [];
+                    for (let i = 0; i < 6; i++) {
+                        const globeData = await load_sprite_frame_from_url('../assets/sprites/layer_1.png', 256, 224, i);
+                        const globeWidth = globeData[0];
+                        const globeHeight = globeData[1];
+                        const globePixels = Array.from(globeData.slice(2));
+                        globeFrames.push({ width: globeWidth, height: globeHeight, pixels: globePixels });
+                    }
+                    
+                    // Load game over sprites - 8 frames from 2048x224 sprite sheet
+                    const gameOverFrames = [];
+                    for (let i = 0; i < 8; i++) {
+                        const gameOverData = await load_sprite_frame_from_url('../assets/sprites/game_over.png', 256, 224, i);
+                        const gameOverWidth = gameOverData[0];
+                        const gameOverHeight = gameOverData[1];
+                        const gameOverPixels = Array.from(gameOverData.slice(2));
+                        gameOverFrames.push({ width: gameOverWidth, height: gameOverHeight, pixels: gameOverPixels });
+                    }
+
+                    console.log('All sprites loaded successfully');
+                    
+                    // NOW create the game instance
+                    console.log('Creating game instance...');
+                    const game = new WasmGame();
+                    console.log('Game instance created');
+
+                    // Set all head frames
+                    for (const frame of headFrames) {
+                        game.add_head_sprite(frame.width, frame.height, frame.pixels);
+                    }
+
+                    // Set all body frames
+                    for (const frame of bodyFrames) {
+                        game.add_body_sprite(frame.width, frame.height, frame.pixels);
+                    }
+
+                    // Set all tail frames
+                    for (const frame of tailFrames) {
+                        game.add_tail_sprite(frame.width, frame.height, frame.pixels);
+                    }
+
+                    // Sett all food frames
+                    for (const frame of foodFrames) {
+                        game.add_food_sprite(frame.width, frame.height, frame.pixels);
+                    }
+                    
+                    // Set all background frames for blinking stars
+                    for (const frame of bgFrames) {
+                        game.add_background_sprite(frame.width, frame.height, frame.pixels);
+                    }
+                    
+                    // Set all globe frames for rotation
+                    for (const frame of globeFrames) {
+                        game.add_globe_sprite(frame.width, frame.height, frame.pixels);
+                    }
+                    
+                    // Set all game over frames for animation
+                    for (const frame of gameOverFrames) {
+                        game.add_game_over_sprite(frame.width, frame.height, frame.pixels);
+                    }
+                    
+                    // Load perk sprites - 2 frames from perks.png (256x224 each)
+                    const perkFrames = [];
+                    for (let i = 0; i < 2; i++) {
+                        const perkData = await load_sprite_frame_from_url('../assets/sprites/perks.png', 128, 112, i);
+                        const perkWidth = perkData[0];
+                        const perkHeight = perkData[1];
+                        const perkPixels = Array.from(perkData.slice(2));
+                        perkFrames.push({ width: perkWidth, height: perkHeight, pixels: perkPixels });
+                    }
+                    
+                    // Set all perk frames
+                    for (const frame of perkFrames) {
+                        game.add_perk_sprite(frame.width, frame.height, frame.pixels);
+                    }
+                    
+                    // Load choose perk sprite (single frame)
+                    const choosePerkData = await load_sprite_frame_from_url('../assets/sprites/choose_perk.png', 256, 112, 0);
+                    const choosePerkWidth = choosePerkData[0];
+                    const choosePerkHeight = choosePerkData[1];
+                    const choosePerkPixels = Array.from(choosePerkData.slice(2));
+                    
+                    // Set choose perk sprite
+                    game.add_choose_perk_sprite(choosePerkWidth, choosePerkHeight, choosePerkPixels);
+
+                    // Get the canvas and add it to the page
+                    const canvas = game.get_canvas();
+                    const loadingDiv = document.getElementById('loading');
+                    const controlsDiv = document.getElementById('controls');
+                    const gameInfoDiv = document.getElementById('game-info');
+                    
+                    // Replace loading text with canvas
+                    loadingDiv.style.display = 'none';
+                    gameInfoDiv.style.display = 'block';
+                    controlsDiv.style.display = 'block';
+                    document.querySelector('.game-container').insertBefore(canvas, controlsDiv);
+
+                    console.log('Canvas added to page');
+
+                    // Set up keyboard input
+                    let keys = {};
+                    
+                    document.addEventListener('keydown', (e) => {
+                        keys[e.code] = true;
+                        game.handle_key_down(e.code);
+                        e.preventDefault();
+                    });
+                    
+                    document.addEventListener('keyup', (e) => {
+                        keys[e.code] = false;
+                        game.handle_key_up(e.code);
+                        e.preventDefault();
+                    });
+
+                    console.log('Keyboard events set up');
+
+                    // Game loop
+                    console.log('Starting game loop...');
+                    function gameLoop() {
+                        try {
+                            game.tick();
+                        } catch (error) {
+                            console.error('Game loop error:', error);
+                        }
+                        requestAnimationFrame(gameLoop);
+                    }
+                    
+                    gameLoop();
+                    console.log('Game started successfully!');
+
+                } catch (spriteError) {
+                    console.error('Failed to load sprites:', spriteError);
+                    document.getElementById('loading').textContent = 'Failed to load sprites: ' + spriteError.message;
+                }
+
+            } catch (error) {
+                console.error('Failed to initialize game:', error);
+                document.getElementById('loading').textContent = 'Failed to load game: ' + error.message;
+            }
+        }
+
+        run();
+    </script>
+</body>
+</html>

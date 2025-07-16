@@ -1,18 +1,46 @@
-use crate::state::structs::{Direction, GameState};
-use minifb::{Key, KeyRepeat};
+use crate::state::structs::Direction;
+use std::collections::HashMap;
 
-pub fn handle_user_input(game_state: &mut GameState) {
-    let key_direction_map = [
-        (Key::W, Direction::Up),
-        (Key::A, Direction::Left),
-        (Key::S, Direction::Down),
-        (Key::D, Direction::Right),
-    ];
+pub fn handle_key_down(
+    key_code: &str,
+    player_direction: &mut Direction,
+    game_over: bool,
+    in_perk_selection: bool,
+    perk_selection_keys: &mut HashMap<String, bool>,
+) {
+    if game_over {
+        return; // Don't handle input when game is over
+    }
 
-    for (key, direction) in key_direction_map.iter() {
-        if game_state.window.is_key_pressed(*key, KeyRepeat::Yes) {
-            game_state.player.direction = *direction;
-            break; // Only process first pressed key
+    // Handle perk selection keys
+    if in_perk_selection {
+        perk_selection_keys.insert(key_code.to_string(), true);
+        return;
+    }
+
+    let new_direction = match key_code {
+        "KeyW" => Some(Direction::Up),
+        "KeyS" => Some(Direction::Down),
+        "KeyA" => Some(Direction::Left),
+        "KeyD" => Some(Direction::Right),
+        _ => None,
+    };
+
+    // Only change direction if it's not opposite to current direction
+    if let Some(direction) = new_direction {
+        let can_change = match (*player_direction, direction) {
+            (Direction::Up, Direction::Down) | (Direction::Down, Direction::Up) |
+            (Direction::Left, Direction::Right) | (Direction::Right, Direction::Left) => false,
+            _ => true,
+        };
+
+        if can_change {
+            *player_direction = direction;
         }
     }
+}
+
+pub fn handle_game_over_input(key_code: &str) -> bool {
+    // Allow restarting the game with Space key
+    key_code == "Space"
 }

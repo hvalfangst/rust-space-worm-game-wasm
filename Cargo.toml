@@ -3,14 +3,44 @@ name = "space_worm"
 version = "0.5.0"
 edition = "2021"
 
-[dependencies]
-minifb = "0.28.0"
-image = "0.25.6"
-winit = "0.27.0"
-rodio = { version = "0.17", features = ["mp3"] }
-rand = "0.9.1"
+[lib]
+crate-type = ["cdylib", "rlib"]
 
-[[bin]]
-name = "space_worm"
-path = "src/main.rs"
+[dependencies]
+image = { version = "0.24", default-features = false, features = ["png", "jpeg"] }
+rand = "0.8"
+wasm-bindgen = "0.2.100"
+js-sys = "0.3.77"
+wasm-bindgen-futures = "0.4.50"
+console_error_panic_hook = "0.1"
+getrandom = { version = "0.2", features = ["js"] }
+
+[dependencies.web-sys]
+version = "0.3.77"
+features = [
+  "console",
+  "CanvasRenderingContext2d", 
+  "Document",
+  "Element",
+  "HtmlCanvasElement",
+  "HtmlElement",
+  "HtmlImageElement",
+  "Window",
+  "AudioContext",
+  "AudioDestinationNode",
+  "AudioBuffer",
+  "AudioBufferSourceNode",
+  "GainNode",
+  "AudioParam",
+  "CssStyleDeclaration",
+  "Response",
+  "RequestInit",
+  "RequestMode",
+  "Request",
+  "KeyboardEvent",
+  "MouseEvent",
+  "EventTarget",
+  "Event",
+  "ImageData",
+]
 

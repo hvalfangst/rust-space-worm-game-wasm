@@ -3,7 +3,7 @@ use image::GenericImageView;
 pub struct SpriteFrame {
     pub width: u32,  // Width of the sprite in pixels
     pub height: u32, // Height of the sprite in pixels
-    data: Vec<u32> // Pixel data of the sprite, typically in ARGB or RGBA format
+    pub data: Vec<u32> // Pixel data of the sprite, typically in ARGB or RGBA format
 }
 
 impl SpriteFrame {
@@ -258,4 +258,103 @@ fn maybe_darken(sprite_pixel: &mut u32, darkness_factor: Option<f32>) {
             ((g as u32).min(255) << 8) |
             (b as u32).min(255);
     }
+}
+
+pub fn add_body_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.body.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_head_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.head.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_food_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.food.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_tail_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.tail.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_background_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.stars.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_globe_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.planet.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_game_over_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.game_over_screen.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_perk_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.perks.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_choose_perk_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.choose_perk.push(sprite_frame);
+    Ok(())
 }
