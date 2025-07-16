@@ -22,6 +22,7 @@
             padding: 30px;
             box-shadow: 0 0 30px rgba(64, 224, 208, 0.3);
             border: 2px solid rgba(64, 224, 208, 0.5);
+            position: relative;
         }
         canvas {
             border: 3px solid #40e0d0;
@@ -156,6 +157,210 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* Mobile Controls - Compact Bottom Area */
+        .mobile-click-controls {
+            display: none;
+            margin-top: 20px;
+            background: rgba(64, 224, 208, 0.1);
+            border: 1px solid rgba(64, 224, 208, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .mobile-click-controls.active {
+            display: block;
+        }
+
+        .mobile-click-grid {
+            position: relative;
+            width: 480px;
+            height: 480px;
+            margin: 0 auto;
+        }
+
+        .mobile-click-area {
+            position: absolute;
+            background: rgba(64, 224, 208, 0.2);
+            border: 1px solid rgba(64, 224, 208, 0.5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #40e0d0;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            z-index: 1;
+        }
+
+        .mobile-click-area:active {
+            background: rgba(64, 224, 208, 0.5);
+            transform: scale(0.95);
+        }
+
+        /* Double-sized click areas for better mobile usability */
+        .mobile-click-area.up { 
+            top: 0;
+            left: 120px;
+            width: 240px;
+            height: 200px;
+        }
+        .mobile-click-area.down { 
+            bottom: 0;
+            left: 120px;
+            width: 240px;
+            height: 200px;
+        }
+        .mobile-click-area.left { 
+            top: 120px;
+            left: 0;
+            width: 200px;
+            height: 240px;
+        }
+        .mobile-click-area.right { 
+            top: 120px;
+            right: 0;
+            width: 200px;
+            height: 240px;
+        }
+
+        .mobile-restart {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 100, 100, 0.3);
+            border: 2px solid rgba(255, 100, 100, 0.7);
+            border-radius: 50%;
+            color: #ff6464;
+            font-size: 14px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .mobile-restart:active {
+            background: rgba(255, 100, 100, 0.6);
+            transform: scale(0.95);
+        }
+
+        .mobile-restart.active {
+            display: flex;
+        }
+
+        .mobile-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px; /* Doubled padding */
+            background: rgba(64, 224, 208, 0.3);
+            border: 2px solid rgba(64, 224, 208, 0.7);
+            border-radius: 50px; /* Doubled border-radius */
+            color: #40e0d0;
+            font-size: 28px; /* Doubled font-size */
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-toggle:hover {
+            background: rgba(64, 224, 208, 0.5);
+        }
+
+        .mobile-toggle.active {
+            background: rgba(64, 224, 208, 0.6);
+            color: #fff;
+        }
+
+        /* Mobile Controls Display */
+        .mobile-controls-display {
+            display: none;
+        }
+
+        .mobile-controls-display.active {
+            display: block;
+        }
+
+        .mobile-circle-control {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #40e0d0;
+            border-radius: 50%;
+            position: relative;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            margin: 10px;
+        }
+
+        .mobile-circle-control .direction {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(64, 224, 208, 0.3);
+            border: 2px solid #40e0d0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #40e0d0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .mobile-circle-control .direction.up {
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mobile-circle-control .direction.right {
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .mobile-circle-control .direction.down {
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mobile-circle-control .direction.left {
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .mobile-circle-control .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #40e0d0;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 10px;
+            }
+            canvas {
+                max-width: 100%;
+                height: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -181,30 +386,63 @@
             <div class="controls-center">
                 <h2>🎮 Controls</h2>
                 
-                <div class="key-group">
-                    <div class="wasd-keys">
-                        <div class="wasd-row">
-                            <div class="key">W</div>
+                <!-- Desktop Controls -->
+                <div class="desktop-controls-display" id="desktop-controls">
+                    <div class="key-group">
+                        <div class="wasd-keys">
+                            <div class="wasd-row">
+                                <div class="key">W</div>
+                            </div>
+                            <div class="wasd-row">
+                                <div class="key">A</div>
+                                <div class="key">S</div>
+                                <div class="key">D</div>
+                            </div>
                         </div>
-                        <div class="wasd-row">
-                            <div class="key">A</div>
-                            <div class="key">S</div>
-                            <div class="key">D</div>
-                        </div>
+                        <div class="key-description">Move snake/Select perk</div>
                     </div>
-                    <div class="key-description">Move snake/Select perk</div>
+                    
+                    <div class="key-group">
+                        <div class="key space">SPACE</div>
+                        <div class="key-description">Restart Game (On Death)</div>
+                    </div>
                 </div>
-                
-                <div class="key-group">
-                    <div class="key space">SPACE</div>
-                    <div class="key-description">Restart Game (On Death)</div>
+
+                <!-- Mobile Controls -->
+                <div class="mobile-controls-display" id="mobile-controls-display">
+                    <div class="key-group">
+                        <div class="key-description">Tap the directional buttons below to control the snake</div>
+                    </div>
+                    
+                    <div class="key-group">
+                        <div class="key space">RESTART</div>
+                        <div class="key-description">Touch restart button (when game over)</div>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Mobile Click Controls -->
+        <div class="mobile-click-controls" id="mobile-click-controls">
+            <div class="mobile-click-grid">
+                <div class="mobile-click-area up" data-key="KeyW">↑</div>
+                <div class="mobile-click-area left" data-key="KeyA">←</div>
+                <div class="mobile-click-area right" data-key="KeyD">→</div>
+                <div class="mobile-click-area down" data-key="KeyS">↓</div>
             </div>
         </div>
     </div>
 
+    <div class="mobile-restart" data-key="Space">
+        RESTART
+    </div>
+
+    <div class="mobile-toggle" id="mobile-toggle">
+        📱 Mobile Mode
+    </div>
+
     <script type="module">
-        import init, { WasmGame } from '../pkg/space_worm.js';
+        import init, { WasmGame } from './pkg/space_worm.js';
 
         async function run() {
             try {
@@ -218,12 +456,12 @@
                 // Load all sprites BEFORE creating the game instance
                 try {
                     // Import the standalone functions from the WASM module
-                    const {load_sprite_frame_from_url } = await import('../pkg/space_worm.js');
+                    const {load_sprite_frame_from_url } = await import('./pkg/space_worm.js');
 
                     // Load head sprites (4 frames from 64x16 sheet)
                     const headFrames = [];
                     for (let i = 0; i < 4; i++) {
-                        const headData = await load_sprite_frame_from_url('../assets/sprites/head.png', 16, 16, i);
+                        const headData = await load_sprite_frame_from_url('./assets/sprites/head.png', 16, 16, i);
                         const headWidth = headData[0];
                         const headHeight = headData[1];
                         const headPixels = Array.from(headData.slice(2));
@@ -233,7 +471,7 @@
                     // Load body sprites (3 frames from 18x6 sheet)
                     const bodyFrames = [];
                     for (let i = 0; i < 3; i++) {
-                        const bodyData = await load_sprite_frame_from_url('../assets/sprites/body.png', 6, 6, i);
+                        const bodyData = await load_sprite_frame_from_url('./assets/sprites/body.png', 6, 6, i);
                         const bodyWidth = bodyData[0];
                         const bodyHeight = bodyData[1];
                         const bodyPixels = Array.from(bodyData.slice(2));
@@ -243,14 +481,14 @@
                     // Load tail sprites - 2 frames from 12x6 sprite sheet
                     const tailFrames = [];
                     for (let i = 0; i < 2; i++) {
-                        const tailData = await load_sprite_frame_from_url('../assets/sprites/tail.png', 6, 6, i);
+                        const tailData = await load_sprite_frame_from_url('./assets/sprites/tail.png', 6, 6, i);
                         const tailWidth = tailData[0];
                         const tailHeight = tailData[1];
                         const tailPixels = Array.from(tailData.slice(2));
                         tailFrames.push({ width: tailWidth, height: tailHeight, pixels: tailPixels });
                     }
 
-                    const tailData1 = await load_sprite_frame_from_url('../assets/sprites/tail.png', 6, 6, 1);
+                    const tailData1 = await load_sprite_frame_from_url('./assets/sprites/tail.png', 6, 6, 1);
                     const tailWidth1 = tailData1[0];
                     const tailHeight1 = tailData1[1];
                     const tailPixels1 = Array.from(tailData1.slice(2));
@@ -258,7 +496,7 @@
                     // Load food sprites - 2 frames from 16x16 sprite sheet
                     const foodFrames = []
                     for (let i = 0; i < 2; i++) {
-                        const foodData = await load_sprite_frame_from_url('../assets/sprites/food.png', 16, 16, i);
+                        const foodData = await load_sprite_frame_from_url('./assets/sprites/food.png', 16, 16, i);
                         const foodWidth = foodData[0];
                         const foodHeight = foodData[1];
                         const foodPixels = Array.from(foodData.slice(2));
@@ -268,7 +506,7 @@
                     // Load background sprites - 6 frames from 256x224 sprite sheet
                     const bgFrames = [];
                     for (let i = 0; i < 6; i++) {
-                        const bgData = await load_sprite_frame_from_url('../assets/sprites/layer_0.png', 256, 224, i);
+                        const bgData = await load_sprite_frame_from_url('./assets/sprites/layer_0.png', 256, 224, i);
                         const bgWidth = bgData[0];
                         const bgHeight = bgData[1];
                         const bgPixels = Array.from(bgData.slice(2));
@@ -278,7 +516,7 @@
                     // Load globe sprites - 6 frames from 256x224 sprite sheet
                     const globeFrames = [];
                     for (let i = 0; i < 6; i++) {
-                        const globeData = await load_sprite_frame_from_url('../assets/sprites/layer_1.png', 256, 224, i);
+                        const globeData = await load_sprite_frame_from_url('./assets/sprites/layer_1.png', 256, 224, i);
                         const globeWidth = globeData[0];
                         const globeHeight = globeData[1];
                         const globePixels = Array.from(globeData.slice(2));
@@ -288,7 +526,7 @@
                     // Load game over sprites - 8 frames from 2048x224 sprite sheet
                     const gameOverFrames = [];
                     for (let i = 0; i < 8; i++) {
-                        const gameOverData = await load_sprite_frame_from_url('../assets/sprites/game_over.png', 256, 224, i);
+                        const gameOverData = await load_sprite_frame_from_url('./assets/sprites/game_over.png', 256, 224, i);
                         const gameOverWidth = gameOverData[0];
                         const gameOverHeight = gameOverData[1];
                         const gameOverPixels = Array.from(gameOverData.slice(2));
@@ -340,7 +578,7 @@
                     // Load perk sprites - 2 frames from perks.png (256x224 each)
                     const perkFrames = [];
                     for (let i = 0; i < 2; i++) {
-                        const perkData = await load_sprite_frame_from_url('../assets/sprites/perks.png', 128, 112, i);
+                        const perkData = await load_sprite_frame_from_url('./assets/sprites/perks.png', 128, 112, i);
                         const perkWidth = perkData[0];
                         const perkHeight = perkData[1];
                         const perkPixels = Array.from(perkData.slice(2));
@@ -353,7 +591,7 @@
                     }
                     
                     // Load choose perk sprite (single frame)
-                    const choosePerkData = await load_sprite_frame_from_url('../assets/sprites/choose_perk.png', 256, 112, 0);
+                    const choosePerkData = await load_sprite_frame_from_url('./assets/sprites/choose_perk.png', 256, 112, 0);
                     const choosePerkWidth = choosePerkData[0];
                     const choosePerkHeight = choosePerkData[1];
                     const choosePerkPixels = Array.from(choosePerkData.slice(2));
@@ -391,6 +629,198 @@
                     });
 
                     console.log('Keyboard events set up');
+
+                    // Set up mobile touch controls
+                    function setupMobileControls() {
+                        const mobileAreas = document.querySelectorAll('.mobile-click-area, .mobile-restart');
+                        
+                        mobileAreas.forEach(area => {
+                            const keyCode = area.dataset.key;
+                            
+                            // Handle touch events for single click
+                            area.addEventListener('touchstart', (e) => {
+                                e.preventDefault();
+                                game.handle_key_down(keyCode);
+                                // For single click, immediately release
+                                setTimeout(() => {
+                                    game.handle_key_up(keyCode);
+                                }, 100);
+                            });
+                            
+                            // Handle mouse events for desktop testing
+                            area.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                game.handle_key_down(keyCode);
+                                // For single click, immediately release
+                                setTimeout(() => {
+                                    game.handle_key_up(keyCode);
+                                }, 100);
+                            });
+                        });
+                    }
+
+                    // Set up swipe controls for additional mobile support
+                    function setupSwipeControls() {
+                        const canvas = game.get_canvas();
+                        let touchStartX = 0;
+                        let touchStartY = 0;
+                        let touchEndX = 0;
+                        let touchEndY = 0;
+                        const minSwipeDistance = 50;
+
+                        canvas.addEventListener('touchstart', (e) => {
+                            touchStartX = e.changedTouches[0].screenX;
+                            touchStartY = e.changedTouches[0].screenY;
+                        });
+
+                        canvas.addEventListener('touchend', (e) => {
+                            touchEndX = e.changedTouches[0].screenX;
+                            touchEndY = e.changedTouches[0].screenY;
+                            
+                            const deltaX = touchEndX - touchStartX;
+                            const deltaY = touchEndY - touchStartY;
+                            
+                            // Check if swipe is long enough
+                            if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+                                // Determine direction based on which delta is larger
+                                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                                    // Horizontal swipe
+                                    if (deltaX > 0) {
+                                        game.handle_key_down('KeyD'); // Right
+                                    } else {
+                                        game.handle_key_down('KeyA'); // Left
+                                    }
+                                } else {
+                                    // Vertical swipe
+                                    if (deltaY > 0) {
+                                        game.handle_key_down('KeyS'); // Down
+                                    } else {
+                                        game.handle_key_down('KeyW'); // Up
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Set up mobile toggle functionality
+                    function setupMobileToggle() {
+                        const toggleButton = document.getElementById('mobile-toggle');
+                        const mobileClickControls = document.getElementById('mobile-click-controls');
+                        const mobileRestart = document.querySelector('.mobile-restart');
+                        const controlsSection = document.getElementById('controls');
+                        let mobileMode = false;
+
+                        toggleButton.addEventListener('click', () => {
+                            mobileMode = !mobileMode;
+                            
+                            if (mobileMode) {
+                                // Enable mobile mode
+                                mobileClickControls.classList.add('active');
+                                mobileRestart.classList.add('active');
+                                toggleButton.classList.add('active');
+                                toggleButton.textContent = '⌨️ Desktop Mode';
+                                
+                                // Hide entire controls section in mobile mode
+                                controlsSection.style.display = 'none';
+                            } else {
+                                // Enable desktop mode
+                                mobileClickControls.classList.remove('active');
+                                mobileRestart.classList.remove('active');
+                                toggleButton.classList.remove('active');
+                                toggleButton.textContent = '📱 Mobile Mode';
+                                
+                                // Show controls section in desktop mode
+                                controlsSection.style.display = 'block';
+                            }
+                        });
+
+                        // Auto-detect mobile devices and enable mobile mode
+                        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                       (window.innerWidth <= 768);
+                        
+                        if (isMobile) {
+                            toggleButton.click(); // Automatically enable mobile mode
+                        }
+                    }
+
+                    // Set up audio system
+                    function setupAudio() {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const audioBuffers = {};
+                        let currentMusicSource = null;
+
+                        // Load all sounds
+                        const soundsToLoad = [
+                            { name: 'eat', url: './assets/audio/eat.mp3' },
+                            { name: 'new_perk', url: './assets/audio/new_perk.mp3' },
+                            { name: 'music_0', url: './assets/audio/music_0.mp3' }
+                        ];
+
+                        soundsToLoad.forEach(sound => {
+                            fetch(sound.url)
+                                .then(response => response.arrayBuffer())
+                                .then(data => audioContext.decodeAudioData(data))
+                                .then(buffer => {
+                                    audioBuffers[sound.name] = buffer;
+                                    console.log(`${sound.name} sound loaded`);
+                                })
+                                .catch(error => {
+                                    console.log(`Could not load ${sound.name} sound:`, error);
+                                });
+                        });
+
+                        // Function to play sound effect
+                        window.playSound = function(soundName) {
+                            if (audioBuffers[soundName]) {
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffers[soundName];
+                                source.connect(audioContext.destination);
+                                source.start();
+                            }
+                        };
+
+                        // Function to play music (with looping)
+                        window.playMusic = function(musicName) {
+                            // Stop current music if playing
+                            if (currentMusicSource) {
+                                currentMusicSource.stop();
+                                currentMusicSource = null;
+                            }
+
+                            if (audioBuffers[musicName]) {
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffers[musicName];
+                                source.loop = true;
+                                source.connect(audioContext.destination);
+                                source.start();
+                                currentMusicSource = source;
+                            }
+                        };
+
+                        // Function to stop music
+                        window.stopMusic = function() {
+                            if (currentMusicSource) {
+                                currentMusicSource.stop();
+                                currentMusicSource = null;
+                            }
+                        };
+
+                        // Resume audio context on first user interaction (required by browsers)
+                        const resumeAudio = () => {
+                            if (audioContext.state === 'suspended') {
+                                audioContext.resume();
+                            }
+                        };
+
+                        document.addEventListener('click', resumeAudio);
+                        document.addEventListener('touchstart', resumeAudio);
+                    }
+
+                    setupMobileControls();
+                    setupSwipeControls();
+                    setupMobileToggle();
+                    setupAudio();
+                    console.log('Mobile controls and audio set up');
 
                     // Game loop
                     console.log('Starting game loop...');

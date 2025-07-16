@@ -43,4 +43,4 @@ echo ""
 echo "Press Ctrl+C to stop the server"
 echo "========================================"
 
-cd www && python3 serve.py
+cd scripts && python3 serve.py

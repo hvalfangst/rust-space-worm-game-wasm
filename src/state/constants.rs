@@ -8,9 +8,9 @@ pub mod graphics {
 }
 
 pub mod physics {
-    pub const LOWER_BOUND_X: f32 = 10.0;
+    pub const LOWER_BOUND_X: f32 = 2.0;
     pub const UPPER_BOUND_X: f32 = 256.0;
-    pub const LOWER_BOUND_Y: f32 = 10.0;
+    pub const LOWER_BOUND_Y: f32 = 2.0;
     pub const UPPER_BOUND_Y: f32 = 224.0;
     pub const COLLISION_TOLERANCE: f32 = 1.0;
 }

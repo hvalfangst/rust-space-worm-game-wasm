@@ -307,6 +307,7 @@ impl WasmGame {
             // Handle game over animation
             self.update_game_over_animation();
             self.render()?;
+            self.play_death_music();
             return Ok(());
         }
 
@@ -314,6 +315,7 @@ impl WasmGame {
         if self.in_perk_selection {
             self.handle_perk_selection();
             self.render()?;
+            self.play_new_perk_sound();
             return Ok(());
         }
 
@@ -336,6 +338,11 @@ impl WasmGame {
     }
 
     fn update_game_logic(&mut self, delta_time: f32) -> Result<(), JsValue> {
+        // Store previous values to detect state changes
+        let previous_score = self.score;
+        let previous_in_perk_selection = self.in_perk_selection;
+        let previous_game_over = self.game_over;
+        
         let game_over = crate::state::core::tick::update_game_logic(
             &mut self.player,
             &mut self.food,
@@ -353,7 +360,23 @@ impl WasmGame {
             delta_time,
         )?;
 
-        if game_over {
+        // Check if food was eaten (score increased)
+        if self.score > previous_score {
+            self.play_eat_sound();
+        }
+
+        // TODO rework when this type of logic is being called!
+
+        // Check if perk selection just started
+        if !previous_in_perk_selection && self.in_perk_selection {
+            self.play_new_perk_sound();
+        }
+
+        // Check if game just ended
+        if !previous_game_over && game_over {
+            self.game_over = true;
+            self.play_death_music();
+        } else if game_over {
             self.game_over = true;
         }
 
@@ -432,7 +455,34 @@ impl WasmGame {
         );
     }
 
+    #[wasm_bindgen]
+    pub fn play_eat_sound(&self) {
+        let js_code = "if (window.playSound) { window.playSound('eat'); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn play_new_perk_sound(&self) {
+        let js_code = "if (window.playSound) { window.playSound('new_perk'); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn play_death_music(&self) {
+        let js_code = "if (window.playMusic) { window.playMusic('music_0'); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn stop_music(&self) {
+        let js_code = "if (window.stopMusic) { window.stopMusic(); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
     fn restart_game(&mut self) {
+        // Stop any playing music
+        self.stop_music();
+        
         crate::state::core::tick::restart_game(
             &mut self.player,
             &mut self.food,

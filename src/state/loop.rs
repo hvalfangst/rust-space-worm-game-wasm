@@ -51,7 +51,7 @@ pub fn update_snake_movement(player: &mut Snake, delta_time: f32) {
 pub fn check_self_collision(player: &Snake) -> bool {
     // Check for self-collision (snake hitting itself)
     if let Some(head) = player.body.first() {
-        // Check if head collides with any body segment (skip the head itself)
+        // Check if head collides with anybody segment (skip the head itself)
         for i in 1..player.body.len() {
             let body_segment = &player.body[i];
             let dx = head.x - body_segment.x;
@@ -89,8 +89,8 @@ pub fn check_food_collision(player: &mut Snake, food: &mut Food, score: &mut u32
                     }
                     
                     // Respawn food at random location
-                    food.position.x = (js_sys::Math::random() * (ART_WIDTH as f64 - 40.0)) as f32;
-                    food.position.y = (js_sys::Math::random() * (ART_HEIGHT as f64 - 40.0)) as f32;
+                    food.position.x = (js_sys::Math::random() * (ART_WIDTH as f64 - 60.0)) as f32;
+                    food.position.y = (js_sys::Math::random() * (ART_HEIGHT as f64 - 60.0)) as f32;
                     food.is_active = true;
                     food.food_sprite_frame_index = 0;
                     food.food_last_sprite_frame_index_update_time = js_sys::Date::now();
