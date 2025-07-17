@@ -166,6 +166,7 @@ pub struct WasmGame {
     in_perk_selection: bool,
     highlighted_perk: Option<usize>,
     perk_selection_keys: std::collections::HashMap<String, bool>,
+    perk_sound_played: bool,
 }
 
 #[wasm_bindgen]
@@ -245,6 +246,7 @@ impl WasmGame {
             in_perk_selection: false,
             highlighted_perk: None,
             perk_selection_keys: std::collections::HashMap::new(),
+            perk_sound_played: false,
         })
     }
 
@@ -315,7 +317,6 @@ impl WasmGame {
         if self.in_perk_selection {
             self.handle_perk_selection();
             self.render()?;
-            self.play_new_perk_sound();
             return Ok(());
         }
 
@@ -368,8 +369,14 @@ impl WasmGame {
         // TODO rework when this type of logic is being called!
 
         // Check if perk selection just started
-        if !previous_in_perk_selection && self.in_perk_selection {
+        if !previous_in_perk_selection && self.in_perk_selection && !self.perk_sound_played {
             self.play_new_perk_sound();
+            self.perk_sound_played = true;
+        }
+
+        // Reset perk sound flag when perk selection ends
+        if previous_in_perk_selection && !self.in_perk_selection {
+            self.perk_sound_played = false;
         }
 
         // Check if game just ended
@@ -482,6 +489,9 @@ impl WasmGame {
     fn restart_game(&mut self) {
         // Stop any playing music
         self.stop_music();
+        
+        // Reset perk sound flag
+        self.perk_sound_played = false;
         
         crate::state::core::tick::restart_game(
             &mut self.player,
