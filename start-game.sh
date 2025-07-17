@@ -1,27 +1,24 @@
 #!/bin/bash
 
-if [ "$1" = "--rebuild" ]; then
-    echo "Cleaning project..."
-    cargo clean
-
+# Check if "build" flag is supplied
+if [ "$1" == "build" ]; then
+    # Existing build logic
     echo "Building WASM module..."
-    wasm-pack build --target web --out-dir pkg
+    wasm-pack build --target web --out-dir pkg --out-name space_worm
 
     if [ $? -ne 0 ]; then
         echo "Error: WASM build failed."
         exit 1
     fi
-else
-    echo "\nSkipping rebuild. Serving existing build...\n"
-fi
 
-echo "Starting Space Worm Game..."
-echo "========================================"
+    echo "Copying WASM files to www directory..."
+    cp -r pkg/ www/
 
-# Check if www directory exists
-if [ ! -d "www" ]; then
-    echo "Error: www directory not found."
-    exit 1
+    echo "Copying assets to www directory..."
+    cp -r assets www/
+
+    touch www/.nojekyll
+    echo "✅ Build complete!"
 fi
 
 # Check if port 3000 is already in use and kill the process if it is
@@ -39,6 +36,7 @@ echo ""
 echo "Controls:"
 echo "  - WASD: Move snake/Select perk"
 echo "  - Space: Restart after game over"
+echo "  - Mobile: Toggle button in top-right"
 echo ""
 echo "Press Ctrl+C to stop the server"
 echo "========================================"

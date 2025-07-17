@@ -25,7 +25,7 @@ class CORSHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return mimetype
 
 def serve():
-    PORT = 3001
+    PORT = 3000
     
     # Change to the parent directory so we can serve both www and pkg
     os.chdir('..')
