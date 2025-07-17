@@ -52,32 +52,30 @@ features = [
 ### Prerequisites
 - [Rust](https://www.rust-lang.org/tools/install) (latest stable)
 - [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) for WASM compilation
+- [Python](https://www.python.org/downloads/) (for local development server)
 
 ### Local Development
+
+To start the game locally, use the [start-game](start-game.sh) script,
+which will build the project and serve it using a local HTTP server. Do note that one
+must pass the `build` argument to aforementioned script in order to actually build it:
+
 ```bash
-# Clone the repository
-git clone https://github.com/hvalfangst/rust-space-worm-game-wasm.git
-cd rust-space-worm-game-wasm
-
-# Build WASM package
-wasm-pack build --target web --out-dir pkg --out-name space_worm
-
-# Copy assets and files
-cp -r pkg/ www/
-cp -r assets www/
-
-# Serve locally (Python 3)
-cd www
-python -m http.server 8000
-# Navigate to http://localhost:8000
+./start-game.sh build
 ```
 
-### Build Scripts
-The project includes several utility scripts in the `scripts/` directory:
 
-- **`build-wasm.sh`**: Builds the WASM package and copies files to www/
-- **`serve.sh`**: Starts a local development server
-- **`deploy.sh`**: Production deployment script
+The default behavior is to just serve the already built WASM, which comes in handy if changes are only present in the
+[index](www/index.html) file.
+
+Once served, one
+can play the game in your favourite browser at http://localhost:3000/www. 
+
+
+
+
+
+
 
 ## 🔄 CI/CD & Deployment
 
