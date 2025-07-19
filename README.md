@@ -2,7 +2,7 @@
 
 A classic Snake-inspired game written in Rust and compiled to WebAssembly for web browsers. 
 
-The player controls a space worm that grows longer as it eats food while avoiding collisions with itself. Every 1000 points, players are eligible to choose special perks that enhance gameplay.
+The player controls a space worm that grows longer as it eats food while avoiding collisions with itself. At scores of 1000, 3000, 6000, and 10000 points, players are eligible to choose special perks that enhance gameplay.
 
 **🌐 Play Online:** [https://hvalfangst.github.io/rust-space-worm-game-wasm/](https://hvalfangst.github.io/rust-space-worm-game-wasm/)
 

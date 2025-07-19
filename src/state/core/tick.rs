@@ -15,6 +15,7 @@ pub fn update_game_logic(
     globe_sprite_frame_index: &mut usize,
     globe_last_sprite_frame_update_time: &mut f64,
     delta_time: f32,
+    granted_perks: &mut Vec<u32>,
 ) -> Result<bool, wasm_bindgen::JsValue> {
     // Update background animation
     crate::state::r#loop::update_background_animation(
@@ -47,10 +48,10 @@ pub fn update_game_logic(
 
     if food_eaten {
         // Check if player is eligible for a perk based on the score
-        if crate::state::core::perks::check_perk_eligibility(*score, perk_required_score) {
+        if let Some(perk) = crate::state::core::perks::check_perk_eligibility(*score, granted_perks) {
             *perk_eligibility = true;
             *in_perk_selection = true;
-            *highlighted_perk = Some(1); // Default to first perk
+            *highlighted_perk = Some(perk as usize); // Use the granted perk as the highlighted one
         }
     }
 

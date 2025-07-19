@@ -167,6 +167,7 @@ pub struct WasmGame {
     highlighted_perk: Option<usize>,
     perk_selection_keys: std::collections::HashMap<String, bool>,
     perk_sound_played: bool,
+    granted_perks: Vec<u32>,
 }
 
 #[wasm_bindgen]
@@ -247,6 +248,7 @@ impl WasmGame {
             highlighted_perk: None,
             perk_selection_keys: std::collections::HashMap::new(),
             perk_sound_played: false,
+            granted_perks: vec![],
         })
     }
 
@@ -359,6 +361,7 @@ impl WasmGame {
             &mut self.globe_sprite_frame_index,
             &mut self.globe_last_sprite_frame_update_time,
             delta_time,
+            &mut self.granted_perks,
         )?;
 
         // Check if food was eaten (score increased)
@@ -368,15 +371,9 @@ impl WasmGame {
 
         // TODO rework when this type of logic is being called!
 
-        // Check if perk selection just started
-        if !previous_in_perk_selection && self.in_perk_selection && !self.perk_sound_played {
+        // Check if perk selection just started - play sound each time we enter perk selection
+        if !previous_in_perk_selection && self.in_perk_selection {
             self.play_new_perk_sound();
-            self.perk_sound_played = true;
-        }
-
-        // Reset perk sound flag when perk selection ends
-        if previous_in_perk_selection && !self.in_perk_selection {
-            self.perk_sound_played = false;
         }
 
         // Check if game just ended
@@ -489,9 +486,6 @@ impl WasmGame {
     fn restart_game(&mut self) {
         // Stop any playing music
         self.stop_music();
-        
-        // Reset perk sound flag
-        self.perk_sound_played = false;
         
         crate::state::core::tick::restart_game(
             &mut self.player,

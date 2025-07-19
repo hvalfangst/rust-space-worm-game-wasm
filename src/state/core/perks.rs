@@ -56,6 +56,19 @@ pub fn apply_perk_effect(perk: usize, move_interval: &mut f32, food_score_value:
     }
 }
 
-pub fn check_perk_eligibility(score: u32, perk_required_score: u32) -> bool {
-    score % perk_required_score == 0
+pub fn check_perk_eligibility(
+    score: u32,
+    granted_perks: &mut Vec<u32>,
+) -> Option<u32> {
+    // Define specific score thresholds
+    let thresholds = [1000, 3000, 6000, 10000];
+
+    for &threshold in &thresholds {
+        if score >= threshold && !granted_perks.contains(&threshold) {
+            granted_perks.push(threshold);
+            return Some(threshold);
+        }
+    }
+
+    None
 }
