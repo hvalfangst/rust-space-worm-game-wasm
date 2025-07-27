@@ -41,5 +41,10 @@ pub mod audio {
 
 pub mod state {
     pub const FRAME_RATE_SLEEP_DURATION: u64 = 16; // 16 ms for ~60 FPS
+
+    pub const SCORE_PERK_THRESHOLD_LEVEL_1: u32 = 100;
+    pub const SCORE_PERK_THRESHOLD_LEVEL_2: u32 = 300;
+    pub const SCORE_PERK_THRESHOLD_LEVEL_3: u32 = 600;
+    pub const SCORE_PERK_THRESHOLD_LEVEL_4: u32 = 800;
 }
 

@@ -3,6 +3,38 @@ use crate::graphics::text::{get_font_data, BitFont};
 use crate::graphics::sprites::SpriteMaps;
 use crate::state::constants::graphics::{ART_WIDTH, ART_HEIGHT};
 use crate::state::structs::{Direction, Snake, Food};
+use crate::state::core::perks::{get_perks_for_threshold, Perk};
+
+fn get_perk_sprite_indices(threshold: u32) -> (usize, usize) {
+    let (perk1, perk2) = get_perks_for_threshold(threshold);
+    (get_perk_sprite_index(&perk1), get_perk_sprite_index(&perk2))
+}
+
+fn get_perk_sprite_index(perk: &Perk) -> usize {
+    match perk {
+        Perk::NeedForSpeed => 0,
+        Perk::HungryWorm => 1,
+        Perk::PerkThree => 2,
+        Perk::PerkFour => 3,
+        Perk::PerkFive => 4,
+        Perk::PerkSix => 5,
+        Perk::PerkSeven => 6,
+        Perk::PerkEight => 7,
+    }
+}
+
+fn get_perk_info(perk: &Perk) -> (&'static str, &'static str) {
+    match perk {
+        Perk::NeedForSpeed => ("Need 4 Speed", "+25% movement speed"),
+        Perk::HungryWorm => ("Hungry Worm", "2x score from food"),
+        Perk::PerkThree => ("Perk Three", "Special ability 3"),
+        Perk::PerkFour => ("Perk Four", "Special ability 4"),
+        Perk::PerkFive => ("Perk Five", "Special ability 5"),
+        Perk::PerkSix => ("Perk Six", "Special ability 6"),
+        Perk::PerkSeven => ("Perk Seven", "Special ability 7"),
+        Perk::PerkEight => ("Perk Eight", "Special ability 8"),
+    }
+}
 
 pub fn draw_score_text(art_buffer: &mut [u32], score: u32) {
     // Use the same font system as the original game
@@ -151,7 +183,7 @@ pub fn draw_parallax_background(
         }
     }
     
-    // Draw globe with gradient shading (layer 1)
+
     if !sprites.planet.is_empty() {
         let globe_frame_index = if sprites.planet.len() > 1 {
             globe_sprite_frame_index % sprites.planet.len()
@@ -161,7 +193,7 @@ pub fn draw_parallax_background(
         
         let globe_sprite = &sprites.planet[globe_frame_index];
         
-        // Draw globe with gradient shading like the original
+        // Draw globe with gradient shading
         draw_sprite_with_gradient_shading(
             0,
             0,
@@ -232,6 +264,7 @@ pub fn draw_perk_selection_screen(
     art_buffer: &mut [u32],
     sprites: &SpriteMaps,
     highlighted_perk: Option<usize>,
+    current_threshold: u32,
 ) {
     // Draw the top part of the perk screen (choose perk prompt)
     if !sprites.choose_perk.is_empty() {
@@ -258,14 +291,19 @@ pub fn draw_perk_selection_screen(
         1.7 // Scale
     );
     
+    // Determine which perks to display based on threshold
+    let perk_sprite_indices = get_perk_sprite_indices(current_threshold);
+    
     // Draw the two perk options
     let perk_positions = [(0, ART_HEIGHT / 2), (128, ART_HEIGHT / 2)];
+    let sprite_indices = [perk_sprite_indices.0, perk_sprite_indices.1];
     
     for (i, &(x, y)) in perk_positions.iter().enumerate() {
         let perk_index = i + 1;
         let is_highlighted = highlighted_perk == Some(perk_index);
+        let sprite_index = sprite_indices[i];
         
-        if i < sprites.perks.len() {
+        if sprite_index < sprites.perks.len() {
             let darkness_factor = if is_highlighted {
                 Some(0.8) // Highlighted - slightly dim
             } else {
@@ -275,7 +313,7 @@ pub fn draw_perk_selection_screen(
             draw_sprite(
                 x,
                 y,
-                &sprites.perks[i],
+                &sprites.perks[sprite_index],
                 art_buffer,
                 ART_WIDTH,
                 darkness_factor,
@@ -285,11 +323,13 @@ pub fn draw_perk_selection_screen(
     
     // Draw information about the highlighted perk
     if let Some(perk_index) = highlighted_perk {
-        let (perk_title, perk_description) = match perk_index {
-            1 => ("Need 4 Speed", "+25% movement speed"),
-            2 => ("Hungry Worm", "2x score from food"),
-            _ => ("Curse of Glossy", "Death by shiny things"),
+        let (perk1, perk2) = get_perks_for_threshold(current_threshold);
+        let selected_perk = match perk_index {
+            1 => &perk1,
+            2 => &perk2,
+            _ => &perk1, // Default fallback
         };
+        let (perk_title, perk_description) = get_perk_info(selected_perk);
         
         // Draw the first line of perk information
         bit_font.draw_text_smooth_scaled(

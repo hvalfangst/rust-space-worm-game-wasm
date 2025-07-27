@@ -1,4 +1,5 @@
 use crate::state::constants::graphics::{SNAKE_BODY_HEIGHT, SNAKE_BODY_WIDTH};
+use crate::state::constants::state::SCORE_PERK_THRESHOLD_LEVEL_1;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PlatformInstant(f64);
@@ -104,10 +105,6 @@ pub struct Food {
     pub food_last_sprite_frame_index_update_time: f64,
 }
 
-pub enum Perk {
-    SpeedBoost,
-    DoubleScore,
-}
 
 pub struct GameState {
     pub player: Snake,
@@ -119,8 +116,10 @@ pub struct GameState {
     pub food_score_value: u32,
     pub perk_required_score: u32,
     pub perk_eligibility: bool,
-    pub selected_perk: Option<usize>,
-    pub perk_history: std::collections::HashMap<u32, Perk>,
+    pub selected_perk: Option<crate::state::core::perks::Perk>,
+    pub perk_history: std::collections::HashMap<u32, crate::state::core::perks::Perk>,
+    pub granted_perks: Vec<u32>,
+    pub current_threshold: Option<u32>,
 }
 
 impl GameState {
@@ -138,10 +137,12 @@ impl GameState {
             game_over: false,
             score: 0,
             food_score_value: 100,
-            perk_required_score: 1000,
+            perk_required_score: SCORE_PERK_THRESHOLD_LEVEL_1,
             perk_eligibility: false,
             selected_perk: None,
             perk_history: std::collections::HashMap::new(),
+            granted_perks: Vec::new(),
+            current_threshold: None,
         }
     }
 

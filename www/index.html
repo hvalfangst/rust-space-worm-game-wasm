@@ -578,7 +578,7 @@
                     
                     // Load perk sprites - 2 frames from perks.png (256x224 each)
                     const perkFrames = [];
-                    for (let i = 0; i < 2; i++) {
+                    for (let i = 0; i < 8; i++) {
                         const perkData = await load_sprite_frame_from_url('./assets/sprites/perks.png', 128, 112, i);
                         const perkWidth = perkData[0];
                         const perkHeight = perkData[1];
@@ -772,8 +772,8 @@
                             }
                         };
 
-                        // Function to play music (with looping)
-                        window.playMusic = function(musicName) {
+                        // Function to play music (with looping and volume control)
+                        window.playMusic = function(musicName, volume = 1.0) {
                             // Stop current music if playing
                             if (currentMusicSource) {
                                 currentMusicSource.stop();
@@ -782,9 +782,18 @@
 
                             if (audioBuffers[musicName]) {
                                 const source = audioContext.createBufferSource();
+                                const gainNode = audioContext.createGain();
+                                
                                 source.buffer = audioBuffers[musicName];
                                 source.loop = true;
-                                source.connect(audioContext.destination);
+                                
+                                // Set volume
+                                gainNode.gain.value = volume;
+                                
+                                // Connect: source -> gain -> destination
+                                source.connect(gainNode);
+                                gainNode.connect(audioContext.destination);
+                                
                                 source.start();
                                 currentMusicSource = source;
                             }
@@ -795,6 +804,21 @@
                             if (currentMusicSource) {
                                 currentMusicSource.stop();
                                 currentMusicSource = null;
+                            }
+                        };
+
+                        // Function to pause music
+                        window.pauseMusic = function() {
+                            if (currentMusicSource) {
+                                currentMusicSource.stop();
+                                currentMusicSource = null;
+                            }
+                        };
+
+                        // Function to resume music
+                        window.resumeMusic = function() {
+                            if (window.playMusic) {
+                                window.playMusic('music_0', 0.5);
                             }
                         };
 
@@ -814,6 +838,13 @@
                     setupMobileToggle();
                     setupAudio();
                     console.log('Mobile controls and audio set up');
+                    
+                    // Start background music at half volume
+                    setTimeout(() => {
+                        if (window.playMusic) {
+                            window.playMusic('music_0', 0.5);
+                        }
+                    }, 1000); // Small delay to ensure audio context is ready
 
                     // Game loop
                     console.log('Starting game loop...');

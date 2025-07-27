@@ -9,6 +9,7 @@ mod platform;
 
 use crate::graphics::sprites::SpriteMaps;
 use crate::state::constants::graphics::{ART_HEIGHT, ART_WIDTH, SCALED_WINDOW_HEIGHT, SCALED_WINDOW_WIDTH};
+use crate::state::constants::state::SCORE_PERK_THRESHOLD_LEVEL_1;
 use crate::state::structs::{Direction, Snake};
 
 
@@ -160,7 +161,8 @@ pub struct WasmGame {
     globe_last_sprite_frame_update_time: f64,
     // Perk system variables
     perk_eligibility: bool,
-    selected_perk: Option<usize>,
+    selected_perk: Option<crate::state::core::perks::Perk>,
+    current_threshold: Option<u32>,
     perk_required_score: u32,
     food_score_value: u32,
     in_perk_selection: bool,
@@ -242,7 +244,8 @@ impl WasmGame {
             // Initialize perk system variables
             perk_eligibility: false,
             selected_perk: None,
-            perk_required_score: 1000,
+            current_threshold: None,
+            perk_required_score: SCORE_PERK_THRESHOLD_LEVEL_1,
             food_score_value: 100,
             in_perk_selection: false,
             highlighted_perk: None,
@@ -311,7 +314,6 @@ impl WasmGame {
             // Handle game over animation
             self.update_game_over_animation();
             self.render()?;
-            self.play_death_music();
             return Ok(());
         }
 
@@ -362,6 +364,7 @@ impl WasmGame {
             &mut self.globe_last_sprite_frame_update_time,
             delta_time,
             &mut self.granted_perks,
+            &mut self.current_threshold,
         )?;
 
         // Check if food was eaten (score increased)
@@ -369,18 +372,21 @@ impl WasmGame {
             self.play_eat_sound();
         }
 
-        // TODO rework when this type of logic is being called!
 
-        // Check if perk selection just started - play sound each time we enter perk selection
+
+        // Check if perk selection just started - pause music and play perk sound
         if !previous_in_perk_selection && self.in_perk_selection {
+            self.pause_music();
             self.play_new_perk_sound();
         }
 
+        // Check if perk selection just ended - resume music
+        if previous_in_perk_selection && !self.in_perk_selection {
+            self.resume_music();
+        }
+
         // Check if game just ended
-        if !previous_game_over && game_over {
-            self.game_over = true;
-            self.play_death_music();
-        } else if game_over {
+        if game_over {
             self.game_over = true;
         }
 
@@ -410,6 +416,7 @@ impl WasmGame {
                 &mut art_buffer,
                 &self.sprites,
                 self.highlighted_perk,
+                self.current_threshold.unwrap_or(1000),
             );
         } else {
             // Draw background with parallax effect
@@ -471,11 +478,6 @@ impl WasmGame {
         js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
     }
 
-    #[wasm_bindgen]
-    pub fn play_death_music(&self) {
-        let js_code = "if (window.playMusic) { window.playMusic('music_0'); }";
-        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
-    }
 
     #[wasm_bindgen]
     pub fn stop_music(&self) {
@@ -483,8 +485,20 @@ impl WasmGame {
         js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
     }
 
+    #[wasm_bindgen]
+    pub fn pause_music(&self) {
+        let js_code = "if (window.pauseMusic) { window.pauseMusic(); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn resume_music(&self) {
+        let js_code = "if (window.resumeMusic) { window.resumeMusic(); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
     fn restart_game(&mut self) {
-        // Stop any playing music
+        // Stop any playing music and restart background music
         self.stop_music();
         
         crate::state::core::tick::restart_game(
@@ -508,6 +522,9 @@ impl WasmGame {
             &mut self.highlighted_perk,
             &mut self.perk_selection_keys,
         );
+        
+        // Resume background music after restart
+        self.resume_music();
     }
 
     fn handle_perk_selection(&mut self) {
@@ -517,9 +534,10 @@ impl WasmGame {
             &mut self.selected_perk,
             &mut self.perk_eligibility,
             &mut self.in_perk_selection,
+            self.current_threshold.unwrap_or(1000),
         ) {
             // A perk was selected, apply its effect
-            if let Some(perk) = self.selected_perk {
+            if let Some(ref perk) = self.selected_perk {
                 crate::state::core::perks::apply_perk_effect(perk, &mut self.player.move_interval, &mut self.food_score_value);
             }
         }

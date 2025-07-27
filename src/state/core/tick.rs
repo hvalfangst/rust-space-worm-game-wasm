@@ -16,6 +16,7 @@ pub fn update_game_logic(
     globe_last_sprite_frame_update_time: &mut f64,
     delta_time: f32,
     granted_perks: &mut Vec<u32>,
+    current_threshold: &mut Option<u32>,
 ) -> Result<bool, wasm_bindgen::JsValue> {
     // Update background animation
     crate::state::r#loop::update_background_animation(
@@ -48,10 +49,11 @@ pub fn update_game_logic(
 
     if food_eaten {
         // Check if player is eligible for a perk based on the score
-        if let Some(perk) = crate::state::core::perks::check_perk_eligibility(*score, granted_perks) {
+        if let Some(threshold) = crate::state::core::perks::check_perk_eligibility(*score, granted_perks) {
             *perk_eligibility = true;
             *in_perk_selection = true;
-            *highlighted_perk = Some(perk as usize); // Use the granted perk as the highlighted one
+            *highlighted_perk = Some(1); // Default to first perk
+            *current_threshold = Some(threshold);
         }
     }
 
@@ -76,13 +78,14 @@ pub fn restart_game(
     game_over_darkness: &mut f32,
     game_over_animation_time: &mut f64,
     perk_eligibility: &mut bool,
-    selected_perk: &mut Option<usize>,
+    selected_perk: &mut Option<crate::state::core::perks::Perk>,
     food_score_value: &mut u32,
     in_perk_selection: &mut bool,
     highlighted_perk: &mut Option<usize>,
     perk_selection_keys: &mut std::collections::HashMap<String, bool>,
 ) {
     // Reset the game state
+
     *player = Snake::new(40.0, 150.0, Direction::Right);
     *food = Food {
         position: Vector2D { x: 200.0, y: 200.0 },
@@ -90,19 +93,23 @@ pub fn restart_game(
         food_sprite_frame_index: 0,
         food_last_sprite_frame_index_update_time: 0.0,
     };
+
     *score = 0;
     *game_over = false;
     *last_frame_time = None;
+
     // Reset background animation
     *stars_offset_x = 0;
     *stars_sprite_frame_index = 0;
     *stars_last_sprite_frame_update_time = 0.0;
     *globe_sprite_frame_index = 0;
     *globe_last_sprite_frame_update_time = 0.0;
+
     // Reset game over animation
     *game_over_frame = 0;
     *game_over_darkness = 0.5;
     *game_over_animation_time = 0.0;
+
     // Reset perk system
     *perk_eligibility = false;
     *selected_perk = None;
