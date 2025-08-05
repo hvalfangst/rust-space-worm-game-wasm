@@ -505,7 +505,7 @@ impl WasmGame {
 
     #[wasm_bindgen]
     pub fn play_new_powerup_sound(&self) {
-        let js_code = "if (window.playSound) { window.playSound('new_perk'); }";
+        let js_code = "if (window.playSound) { window.playSound('divine_intervention'); }";
         js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
     }
 
