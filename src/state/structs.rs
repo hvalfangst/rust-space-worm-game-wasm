@@ -1,5 +1,4 @@
 use crate::state::constants::graphics::{SNAKE_BODY_HEIGHT, SNAKE_BODY_WIDTH};
-use crate::state::constants::state::SCORE_PERK_THRESHOLD_LEVEL_1;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PlatformInstant(f64);
@@ -105,21 +104,27 @@ pub struct Food {
     pub food_last_sprite_frame_index_update_time: f64,
 }
 
+pub struct LootCrate {
+    pub position: Vector2D,
+    pub is_active: bool,
+    pub sprite_frame_index: usize,
+    pub last_sprite_frame_index_update_time: f64,
+}
+
 
 pub struct GameState {
     pub player: Snake,
     pub food: Food,
+    pub loot_crate: LootCrate,
     pub delta_time: f32,
     pub last_frame_time: Option<PlatformInstant>,
     pub game_over: bool,
     pub score: u32,
     pub food_score_value: u32,
-    pub perk_required_score: u32,
-    pub perk_eligibility: bool,
-    pub selected_perk: Option<crate::state::core::perks::Perk>,
-    pub perk_history: std::collections::HashMap<u32, crate::state::core::perks::Perk>,
-    pub granted_perks: Vec<u32>,
-    pub current_threshold: Option<u32>,
+    pub last_loot_spawn_score: u32,
+    pub powerup_eligibility: bool,
+    pub selected_powerup: Option<crate::state::core::perks::Perk>,
+    pub powerup_history: std::collections::HashMap<u32, crate::state::core::perks::Perk>,
 }
 
 impl GameState {
@@ -132,17 +137,21 @@ impl GameState {
                 food_sprite_frame_index: 0,
                 food_last_sprite_frame_index_update_time: 0.0,
             },
+            loot_crate: LootCrate {
+                position: Vector2D { x: 0.0, y: 0.0 },
+                is_active: false,
+                sprite_frame_index: 0,
+                last_sprite_frame_index_update_time: 0.0,
+            },
             delta_time: 0.0,
             last_frame_time: None,
             game_over: false,
             score: 0,
             food_score_value: 100,
-            perk_required_score: SCORE_PERK_THRESHOLD_LEVEL_1,
-            perk_eligibility: false,
-            selected_perk: None,
-            perk_history: std::collections::HashMap::new(),
-            granted_perks: Vec::new(),
-            current_threshold: None,
+            last_loot_spawn_score: 0,
+            powerup_eligibility: false,
+            selected_powerup: None,
+            powerup_history: std::collections::HashMap::new(),
         }
     }
 
@@ -154,10 +163,17 @@ impl GameState {
             food_sprite_frame_index: 0,
             food_last_sprite_frame_index_update_time: 0.0,
         };
+        self.loot_crate = LootCrate {
+            position: Vector2D { x: 0.0, y: 0.0 },
+            is_active: false,
+            sprite_frame_index: 0,
+            last_sprite_frame_index_update_time: 0.0,
+        };
         self.score = 0;
         self.game_over = false;
-        self.perk_eligibility = false;
-        self.selected_perk = None;
-        self.perk_history.clear();
+        self.last_loot_spawn_score = 0;
+        self.powerup_eligibility = false;
+        self.selected_powerup = None;
+        self.powerup_history.clear();
     }
 }

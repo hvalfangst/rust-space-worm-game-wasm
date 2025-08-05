@@ -21,8 +21,9 @@ pub struct SpriteMaps {
     pub stars: Vec<SpriteFrame>,
     pub planet: Vec<SpriteFrame>,
     pub blue_strip: Vec<SpriteFrame>,
-    pub perks: Vec<SpriteFrame>,
-    pub choose_perk: Vec<SpriteFrame>
+    pub powerups: Vec<SpriteFrame>,
+    pub choose_powerup: Vec<SpriteFrame>,
+    pub loot_crate : Vec<SpriteFrame>
 }
 
 impl SpriteMaps {
@@ -36,8 +37,9 @@ impl SpriteMaps {
             stars: load_sprites_from_map("assets/sprites/layer_0.png", 256, 224),
             planet: load_sprites_from_map("assets/sprites/layer_1.png", 256, 224),
             blue_strip: load_sprites_from_map("assets/sprites/blue_strip.png", 256, 224),
-            perks: load_sprites_from_map("assets/sprites/perks.png", 128, 112),
-            choose_perk: load_sprites_from_map("assets/sprites/choose_perk.png", 256, 112)
+            powerups: load_sprites_from_map("assets/sprites/powerups.png", 128, 112),
+            choose_powerup: load_sprites_from_map("assets/sprites/powerup_grid.png", 256, 112),
+            loot_crate: load_sprites_from_map("assets/sprites/loot_crate.png", 128, 112)
         }
     }
 }
@@ -117,7 +119,7 @@ pub fn img_to_buffer(img: &image::DynamicImage) -> Vec<u32> {
 ///
 /// The formula for alpha blending is:
 /// ```
-/// blended_color = (foreground_color * alpha + background_color * (255 - alpha)) / 255
+///  blended_color = (foreground_color * alpha + background_color * (255 - alpha)) / 255
 /// ```
 ///
 /// # ARGB Color Palette
@@ -337,24 +339,35 @@ pub fn add_game_over_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, d
     Ok(())
 }
 
-pub fn add_perk_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+pub fn add_powerup_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
     let sprite_frame = SpriteFrame {
         width,
         height,
         data,
     };
 
-    sprites.perks.push(sprite_frame);
+    sprites.powerups.push(sprite_frame);
     Ok(())
 }
 
-pub fn add_choose_perk_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+pub fn add_choose_powerup_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
     let sprite_frame = SpriteFrame {
         width,
         height,
         data,
     };
 
-    sprites.choose_perk.push(sprite_frame);
+    sprites.choose_powerup.push(sprite_frame);
+    Ok(())
+}
+
+pub fn add_loot_crate_sprite(sprites: &mut SpriteMaps, width: u32, height: u32, data: Vec<u32>) -> Result<(), wasm_bindgen::JsValue> {
+    let sprite_frame = SpriteFrame {
+        width,
+        height,
+        data,
+    };
+
+    sprites.loot_crate.push(sprite_frame);
     Ok(())
 }

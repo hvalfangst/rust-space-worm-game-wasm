@@ -53,7 +53,7 @@ impl PlatformAudio for WebAudio {
             
             let gain_node = self.audio_context.create_gain()?;
             // Note: Gain control simplified for now
-            // gain_node.gain().set_value(self.music_volume);
+            gain_node.gain().set_value(self.music_volume);
             
             source.connect_with_audio_node(&gain_node)?;
             gain_node.connect_with_audio_node(&self.audio_context.destination())?;

@@ -2,6 +2,9 @@
 
 # Check if "build" flag is supplied
 if [ "$1" == "build" ]; then
+    # Running cargo clean
+    cargo clean
+
     # Existing build logic
     echo "Building WASM module..."
     wasm-pack build --target web --out-dir pkg --out-name space_worm

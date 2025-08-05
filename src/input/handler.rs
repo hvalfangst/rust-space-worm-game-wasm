@@ -5,16 +5,16 @@ pub fn handle_key_down(
     key_code: &str,
     player_direction: &mut Direction,
     game_over: bool,
-    in_perk_selection: bool,
-    perk_selection_keys: &mut HashMap<String, bool>,
+    in_powerup_selection: bool,
+    powerup_selection_keys: &mut HashMap<String, bool>,
 ) {
     if game_over {
         return; // Don't handle input when game is over
     }
 
-    // Handle perk selection keys
-    if in_perk_selection {
-        perk_selection_keys.insert(key_code.to_string(), true);
+    // Handle powerup selection keys
+    if in_powerup_selection {
+        powerup_selection_keys.insert(key_code.to_string(), true);
         return;
     }
 

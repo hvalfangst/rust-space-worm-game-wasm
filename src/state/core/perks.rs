@@ -1,79 +1,67 @@
 use std::collections::HashMap;
-use crate::state::constants::state;
+use crate::state::constants::physics::{LOWER_BOUND_X, UPPER_BOUND_X, LOWER_BOUND_Y, UPPER_BOUND_Y};
+use crate::state::structs::{Vector2D, LootCrate};
 
 pub enum Perk {
     NeedForSpeed,
-    HungryWorm,
-    PerkThree,
-    PerkFour,
-    PerkFive,
-    PerkSix,
-    PerkSeven,
-    PerkEight
+    HungryWorm
 }
 
-pub fn get_perks_for_threshold(threshold: u32) -> (Perk, Perk) {
-    match threshold {
-        state::SCORE_PERK_THRESHOLD_LEVEL_1 => (Perk::NeedForSpeed, Perk::HungryWorm),
-        state::SCORE_PERK_THRESHOLD_LEVEL_2 => (Perk::PerkThree, Perk::PerkFour),
-        state::SCORE_PERK_THRESHOLD_LEVEL_3 => (Perk::PerkFive, Perk::PerkSix),
-        state::SCORE_PERK_THRESHOLD_LEVEL_4 => (Perk::PerkSeven, Perk::PerkEight),
-        _ => (Perk::NeedForSpeed, Perk::HungryWorm), // Default fallback
-    }
+pub fn get_default_powerups() -> (Perk, Perk) {
+    (Perk::NeedForSpeed, Perk::HungryWorm)
 }
 
-pub fn handle_perk_selection(
-    perk_selection_keys: &mut HashMap<String, bool>,
-    highlighted_perk: &mut Option<usize>,
-    selected_perk: &mut Option<Perk>,
-    perk_eligibility: &mut bool,
-    in_perk_selection: &mut bool,
-    current_threshold: u32,
+pub fn handle_powerup_selection(
+    powerup_selection_keys: &mut HashMap<String, bool>,
+    highlighted_powerup: &mut Option<usize>,
+    selected_powerup: &mut Option<Perk>,
+    powerup_eligibility: &mut bool,
+    in_powerup_selection: &mut bool,
 ) -> bool {
-    let (perk1, perk2) = get_perks_for_threshold(current_threshold);
+    let (powerup1, powerup2) = get_default_powerups();
 
-    // Handle A and D keys for perk navigation
-    if perk_selection_keys.contains_key("KeyA") {
-        *highlighted_perk = Some(1);
-        perk_selection_keys.remove("KeyA");
+    // Handle A and D keys for powerup navigation
+    if powerup_selection_keys.contains_key("KeyA") {
+        *highlighted_powerup = Some(1);
+        powerup_selection_keys.remove("KeyA");
     }
-    if perk_selection_keys.contains_key("KeyD") {
-        *highlighted_perk = Some(2);
-        perk_selection_keys.remove("KeyD");
+    if powerup_selection_keys.contains_key("KeyD") {
+        *highlighted_powerup = Some(2);
+        powerup_selection_keys.remove("KeyD");
     }
 
-    // Handle Space key for perk selection
-    if perk_selection_keys.contains_key("Space") {
-        if let Some(perk_index) = *highlighted_perk {
-            let chosen_perk = match perk_index {
-                1 => perk1,
-                2 => perk2,
-                _ => perk1, // Default fallback
+    // Handle Space key for powerup selection
+    if powerup_selection_keys.contains_key("Space") {
+        if let Some(powerup_index) = *highlighted_powerup {
+            let chosen_powerup = match powerup_index {
+                1 => powerup1,
+                2 => powerup2,
+                _ => powerup1, // Default fallback
             };
-            *selected_perk = Some(chosen_perk);
-            *perk_eligibility = false;
-            *in_perk_selection = false;
-            *highlighted_perk = None;
-            perk_selection_keys.clear();
+            *selected_powerup = Some(chosen_powerup);
+            *powerup_eligibility = false;
+            *in_powerup_selection = false;
+            *highlighted_powerup = None;
+            powerup_selection_keys.clear();
             return true;
         }
     }
 
-    // Handle Escape key for default perk selection
-    if perk_selection_keys.contains_key("Escape") {
-        *selected_perk = Some(perk1); // Choose first perk as default
-        *perk_eligibility = false;
-        *in_perk_selection = false;
-        *highlighted_perk = None;
-        perk_selection_keys.clear();
+    // Handle Escape key for default powerup selection
+    if powerup_selection_keys.contains_key("Escape") {
+        *selected_powerup = Some(powerup1); // Choose first powerup as default
+        *powerup_eligibility = false;
+        *in_powerup_selection = false;
+        *highlighted_powerup = None;
+        powerup_selection_keys.clear();
         return true;
     }
 
     false
 }
 
-pub fn apply_perk_effect(perk: &Perk, move_interval: &mut f32, food_score_value: &mut u32) {
-    match perk {
+pub fn apply_powerup_effect(powerup: &Perk, move_interval: &mut f32, food_score_value: &mut u32) {
+    match powerup {
         Perk::NeedForSpeed => {
             // Speed boost: reduce move interval by 25%
             *move_interval *= 0.75;
@@ -82,43 +70,41 @@ pub fn apply_perk_effect(perk: &Perk, move_interval: &mut f32, food_score_value:
             // Double score: increase food score value by 2x
             *food_score_value *= 2;
         }
-        Perk::PerkThree => {
-            // TODO: Implement PerkThree effect
-        }
-        Perk::PerkFour => {
-            // TODO: Implement PerkFour effect
-        }
-        Perk::PerkFive => {
-            // TODO: Implement PerkFive effect
-        }
-        Perk::PerkSix => {
-            // TODO: Implement PerkSix effect
-        }
-        Perk::PerkSeven => {
-            // TODO: Implement PerkSeven effect
-        }
-        Perk::PerkEight => {
-            // TODO: Implement PerkEight effect
-        }
+        _ => {}
     }
 }
 
-pub fn check_perk_eligibility(
-    score: u32,
-    granted_perks: &mut Vec<u32>,
-) -> Option<u32> {
-    // Define specific score thresholds
-    let thresholds = [state::SCORE_PERK_THRESHOLD_LEVEL_1,
-        state::SCORE_PERK_THRESHOLD_LEVEL_2,
-        state::SCORE_PERK_THRESHOLD_LEVEL_3,
-        state::SCORE_PERK_THRESHOLD_LEVEL_4];
+pub fn should_spawn_loot_crate_at_threshold() -> bool {
+    // 20% chance to spawn loot crate
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    
+    let mut hasher = DefaultHasher::new();
+    js_sys::Date::now().to_bits().hash(&mut hasher);
+    let hash = hasher.finish();
+    
+    (hash % 100) < 20
+}
 
-    for &threshold in &thresholds {
-        if score >= threshold && !granted_perks.contains(&threshold) {
-            granted_perks.push(threshold);
-            return Some(threshold);
-        }
-    }
+pub fn spawn_loot_crate(loot_crate: &mut LootCrate) {
+    println!("Spawning loot crate at random position");
 
-    None
+    // Generate random position within bounds
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    
+    let mut hasher = DefaultHasher::new();
+    js_sys::Date::now().to_bits().hash(&mut hasher);
+    let hash = hasher.finish();
+    
+    let x_range = UPPER_BOUND_X - LOWER_BOUND_X - 32.0; // Account for sprite width
+    let y_range = UPPER_BOUND_Y - LOWER_BOUND_Y - 32.0; // Account for sprite height
+    
+    let x = LOWER_BOUND_X + 16.0 + ((hash % 1000) as f32 / 1000.0) * x_range;
+    let y = LOWER_BOUND_Y + 16.0 + (((hash >> 10) % 1000) as f32 / 1000.0) * y_range;
+    
+    loot_crate.position = Vector2D { x, y };
+    loot_crate.is_active = true;
+    loot_crate.sprite_frame_index = 0;
+    loot_crate.last_sprite_frame_index_update_time = js_sys::Date::now();
 }

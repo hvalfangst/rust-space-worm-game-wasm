@@ -9,7 +9,6 @@ mod platform;
 
 use crate::graphics::sprites::SpriteMaps;
 use crate::state::constants::graphics::{ART_HEIGHT, ART_WIDTH, SCALED_WINDOW_HEIGHT, SCALED_WINDOW_WIDTH};
-use crate::state::constants::state::SCORE_PERK_THRESHOLD_LEVEL_1;
 use crate::state::structs::{Direction, Snake};
 
 
@@ -20,60 +19,60 @@ pub fn main() {
     console_error_panic_hook::set_once();
 }
 
-#[wasm_bindgen]
-pub async fn load_sprite_from_url(sprite_path: &str, sprite_width: u32, sprite_height: u32) -> Result<js_sys::Array, JsValue> {
-    // Use fetch to load the image
-    let window = web_sys::window().ok_or("No window")?;
-    let resp_value = wasm_bindgen_futures::JsFuture::from(window.fetch_with_str(sprite_path)).await?;
-    let resp: web_sys::Response = resp_value.dyn_into()?;
-    let array_buffer = wasm_bindgen_futures::JsFuture::from(resp.array_buffer()?).await?;
-    let uint8_array = js_sys::Uint8Array::new(&array_buffer);
-    let mut bytes = vec![0; uint8_array.length() as usize];
-    uint8_array.copy_to(&mut bytes);
-
-    // Load image from bytes using the image crate
-    let img = image::load_from_memory(&bytes).map_err(|e| JsValue::from_str(&format!("Failed to load image: {}", e)))?;
-    let rgba_img = img.to_rgba8();
-    let (map_width, map_height) = img.dimensions();
-
-    // Extract just the first sprite from the sprite sheet
-    let sprites_x = map_width / sprite_width;
-    let sprites_y = map_height / sprite_height;
-
-    if sprites_x == 0 || sprites_y == 0 {
-        return Err(JsValue::from_str("Invalid sprite dimensions"));
-    }
-
-    // Extract the first sprite (top-left)
-    let mut sprite_data = Vec::new();
-    for y in 0..sprite_height {
-        for x in 0..sprite_width {
-            let src_x = x as usize;
-            let src_y = y as usize;
-
-            if src_x < map_width as usize && src_y < map_height as usize {
-                let pixel = rgba_img.get_pixel(src_x as u32, src_y as u32);
-                let r = pixel[0] as u32;
-                let g = pixel[1] as u32;
-                let b = pixel[2] as u32;
-                let a = pixel[3] as u32;
-                sprite_data.push((a << 24) | (r << 16) | (g << 8) | b);
-            } else {
-                sprite_data.push(0); // Transparent pixel
-            }
-        }
-    }
-
-    // Return as JS array: [width, height, ...pixel_data]
-    let result = js_sys::Array::new();
-    result.push(&JsValue::from(sprite_width));
-    result.push(&JsValue::from(sprite_height));
-    for pixel in sprite_data {
-        result.push(&JsValue::from(pixel));
-    }
-
-    Ok(result)
-}
+// #[wasm_bindgen]
+// pub async fn load_sprite_from_url(sprite_path: &str, sprite_width: u32, sprite_height: u32) -> Result<js_sys::Array, JsValue> {
+//     // Use fetch to load the image
+//     let window = web_sys::window().ok_or("No window")?;
+//     let resp_value = wasm_bindgen_futures::JsFuture::from(window.fetch_with_str(sprite_path)).await?;
+//     let resp: web_sys::Response = resp_value.dyn_into()?;
+//     let array_buffer = wasm_bindgen_futures::JsFuture::from(resp.array_buffer()?).await?;
+//     let uint8_array = js_sys::Uint8Array::new(&array_buffer);
+//     let mut bytes = vec![0; uint8_array.length() as usize];
+//     uint8_array.copy_to(&mut bytes);
+//
+//     // Load image from bytes using the image crate
+//     let img = image::load_from_memory(&bytes).map_err(|e| JsValue::from_str(&format!("Failed to load image: {}", e)))?;
+//     let rgba_img = img.to_rgba8();
+//     let (map_width, map_height) = img.dimensions();
+//
+//     // Extract just the first sprite from the sprite sheet
+//     let sprites_x = map_width / sprite_width;
+//     let sprites_y = map_height / sprite_height;
+//
+//     if sprites_x == 0 || sprites_y == 0 {
+//         return Err(JsValue::from_str("Invalid sprite dimensions"));
+//     }
+//
+//     // Extract the first sprite (top-left)
+//     let mut sprite_data = Vec::new();
+//     for y in 0..sprite_height {
+//         for x in 0..sprite_width {
+//             let src_x = x as usize;
+//             let src_y = y as usize;
+//
+//             if src_x < map_width as usize && src_y < map_height as usize {
+//                 let pixel = rgba_img.get_pixel(src_x as u32, src_y as u32);
+//                 let r = pixel[0] as u32;
+//                 let g = pixel[1] as u32;
+//                 let b = pixel[2] as u32;
+//                 let a = pixel[3] as u32;
+//                 sprite_data.push((a << 24) | (r << 16) | (g << 8) | b);
+//             } else {
+//                 sprite_data.push(0); // Transparent pixel
+//             }
+//         }
+//     }
+//
+//     // Return as JS array: [width, height, ...pixel_data]
+//     let result = js_sys::Array::new();
+//     result.push(&JsValue::from(sprite_width));
+//     result.push(&JsValue::from(sprite_height));
+//     for pixel in sprite_data {
+//         result.push(&JsValue::from(pixel));
+//     }
+//
+//     Ok(result)
+// }
 
 #[wasm_bindgen]
 pub async fn load_sprite_frame_from_url(sprite_path: &str, sprite_width: u32, sprite_height: u32, frame_index: u32) -> Result<js_sys::Array, JsValue> {
@@ -145,6 +144,7 @@ pub struct WasmGame {
     pixel_buffer: Vec<u32>,
     player: Snake,
     food: state::structs::Food,
+    loot_crate: state::structs::LootCrate,
     sprites: SpriteMaps,
     score: u32,
     game_over: bool,
@@ -159,17 +159,19 @@ pub struct WasmGame {
     stars_last_sprite_frame_update_time: f64,
     globe_sprite_frame_index: usize,
     globe_last_sprite_frame_update_time: f64,
-    // Perk system variables
-    perk_eligibility: bool,
-    selected_perk: Option<crate::state::core::perks::Perk>,
-    current_threshold: Option<u32>,
-    perk_required_score: u32,
+    // Powerup system variables
+    powerup_eligibility: bool,
+    selected_powerup: Option<crate::state::core::perks::Perk>,
+    last_loot_spawn_score: u32,
     food_score_value: u32,
-    in_perk_selection: bool,
-    highlighted_perk: Option<usize>,
-    perk_selection_keys: std::collections::HashMap<String, bool>,
-    perk_sound_played: bool,
-    granted_perks: Vec<u32>,
+    in_powerup_selection: bool,
+    highlighted_powerup: Option<usize>,
+    powerup_selection_keys: std::collections::HashMap<String, bool>,
+    powerup_sound_played: bool,
+    // Loot crate timer
+    last_loot_crate_check_time: f64,
+    // Game over crash sound state
+    crash_sound_played: bool,
 }
 
 #[wasm_bindgen]
@@ -217,8 +219,9 @@ impl WasmGame {
             stars: vec![],
             planet: vec![],
             blue_strip: vec![],
-            perks: vec![],
-            choose_perk: vec![],
+            powerups: vec![],
+            choose_powerup: vec![],
+            loot_crate: vec![],
         };
 
         Ok(WasmGame {
@@ -227,6 +230,12 @@ impl WasmGame {
             pixel_buffer,
             player,
             food,
+            loot_crate: state::structs::LootCrate {
+                position: state::structs::Vector2D { x: 0.0, y: 0.0 },
+                is_active: false,
+                sprite_frame_index: 0,
+                last_sprite_frame_index_update_time: 0.0,
+            },
             sprites,
             score: 0,
             game_over: false,
@@ -241,65 +250,74 @@ impl WasmGame {
             stars_last_sprite_frame_update_time: 0.0,
             globe_sprite_frame_index: 0,
             globe_last_sprite_frame_update_time: 0.0,
-            // Initialize perk system variables
-            perk_eligibility: false,
-            selected_perk: None,
-            current_threshold: None,
-            perk_required_score: SCORE_PERK_THRESHOLD_LEVEL_1,
+            // Initialize powerup system variables
+            powerup_eligibility: false,
+            selected_powerup: None,
+            last_loot_spawn_score: 0,
             food_score_value: 100,
-            in_perk_selection: false,
-            highlighted_perk: None,
-            perk_selection_keys: std::collections::HashMap::new(),
-            perk_sound_played: false,
-            granted_perks: vec![],
+            in_powerup_selection: false,
+            highlighted_powerup: None,
+            powerup_selection_keys: std::collections::HashMap::new(),
+            powerup_sound_played: false,
+            // Initialize loot crate timer
+            last_loot_crate_check_time: 0.0,
+            // Initialize crash sound state
+            crash_sound_played: false,
         })
     }
 
     #[wasm_bindgen]
     pub fn add_body_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_body_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_body_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
     pub fn add_head_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_head_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_head_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
     pub fn add_food_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_food_sprite(&mut self.sprites, width, height, data)?;
+        graphics::sprites::add_food_sprite(&mut self.sprites, width, height, data)?;
         web_sys::console::log_1(&format!("Food sprite added: {}x{} (frame {})", width, height, self.sprites.food.len() - 1).into());
         Ok(())
     }
 
     #[wasm_bindgen]
     pub fn add_tail_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_tail_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_tail_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
     pub fn add_background_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_background_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_background_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
     pub fn add_globe_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_globe_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_globe_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
     pub fn add_game_over_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_game_over_sprite(&mut self.sprites, width, height, data)
+        graphics::sprites::add_game_over_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
-    pub fn add_perk_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_perk_sprite(&mut self.sprites, width, height, data)
+    pub fn add_powerup_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
+        graphics::sprites::add_powerup_sprite(&mut self.sprites, width, height, data)
     }
 
     #[wasm_bindgen]
-    pub fn add_choose_perk_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
-        crate::graphics::sprites::add_choose_perk_sprite(&mut self.sprites, width, height, data)
+    pub fn add_choose_powerup_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
+        graphics::sprites::add_choose_powerup_sprite(&mut self.sprites, width, height, data)
+    }
+
+    #[wasm_bindgen]
+    pub fn add_loot_crate_sprite(&mut self, width: u32, height: u32, data: Vec<u32>) -> Result<(), JsValue> {
+        graphics::sprites::add_loot_crate_sprite(&mut self.sprites, width, height, data)?;
+        web_sys::console::log_1(&format!("Loot crate sprite added: {}x{} (frame {})", width, height, self.sprites.loot_crate.len() - 1).into());
+        Ok(())
     }
 
 
@@ -311,15 +329,22 @@ impl WasmGame {
     #[wasm_bindgen]
     pub fn tick(&mut self) -> Result<(), JsValue> {
         if self.game_over {
-            // Handle game over animation
+            // Play crash sound once when game over starts
+            if !self.crash_sound_played {
+                self.play_crash_sound();
+                self.crash_sound_played = true;
+                web_sys::console::log_1(&"Game over - playing crash sound".into());
+            }
+            
+            // Handle game over animation (will be paused until sound finishes)
             self.update_game_over_animation();
             self.render()?;
             return Ok(());
         }
 
-        // Handle perk selection
-        if self.in_perk_selection {
-            self.handle_perk_selection();
+        // Handle powerup selection
+        if self.in_powerup_selection {
+            self.handle_powerup_selection();
             self.render()?;
             return Ok(());
         }
@@ -345,26 +370,25 @@ impl WasmGame {
     fn update_game_logic(&mut self, delta_time: f32) -> Result<(), JsValue> {
         // Store previous values to detect state changes
         let previous_score = self.score;
-        let previous_in_perk_selection = self.in_perk_selection;
-        let previous_game_over = self.game_over;
+        let previous_in_powerup_selection = self.in_powerup_selection;
+        let _previous_game_over = self.game_over;
         
         let game_over = crate::state::core::tick::update_game_logic(
             &mut self.player,
             &mut self.food,
+            &mut self.loot_crate,
             &mut self.score,
             self.food_score_value,
-            &mut self.perk_eligibility,
-            &mut self.in_perk_selection,
-            &mut self.highlighted_perk,
-            self.perk_required_score,
+            &mut self.powerup_eligibility,
+            &mut self.in_powerup_selection,
+            &mut self.highlighted_powerup,
             &mut self.stars_offset_x,
             &mut self.stars_sprite_frame_index,
             &mut self.stars_last_sprite_frame_update_time,
             &mut self.globe_sprite_frame_index,
             &mut self.globe_last_sprite_frame_update_time,
+            &mut self.last_loot_crate_check_time,
             delta_time,
-            &mut self.granted_perks,
-            &mut self.current_threshold,
         )?;
 
         // Check if food was eaten (score increased)
@@ -374,20 +398,24 @@ impl WasmGame {
 
 
 
-        // Check if perk selection just started - pause music and play perk sound
-        if !previous_in_perk_selection && self.in_perk_selection {
+        // Check if powerup selection just started - pause music and play powerup sound
+        if !previous_in_powerup_selection && self.in_powerup_selection {
+            web_sys::console::log_1(&"Powerup selection started, pausing music".into());
             self.pause_music();
-            self.play_new_perk_sound();
+            self.play_new_powerup_sound();
         }
 
-        // Check if perk selection just ended - resume music
-        if previous_in_perk_selection && !self.in_perk_selection {
+        // Check if powerup selection just ended - resume music
+        if previous_in_powerup_selection && !self.in_powerup_selection {
+            web_sys::console::log_1(&"Powerup selection ended, resuming music".into());
             self.resume_music();
         }
 
         // Check if game just ended
         if game_over {
             self.game_over = true;
+            // Stop music immediately when game over occurs
+            self.stop_music();
         }
 
         Ok(())
@@ -403,24 +431,23 @@ impl WasmGame {
 
         if self.game_over {
             // Draw game over screen
-            crate::graphics::update::draw_game_over_screen(
+            graphics::update::draw_game_over_screen(
                 &mut art_buffer,
                 &self.sprites,
                 self.game_over_frame,
                 self.game_over_darkness,
                 self.score,
             );
-        } else if self.in_perk_selection {
-            // Draw perk selection screen
-            crate::graphics::update::draw_perk_selection_screen(
+        } else if self.in_powerup_selection {
+            // Draw powerup selection screen
+            graphics::update::draw_powerup_selection_screen(
                 &mut art_buffer,
                 &self.sprites,
-                self.highlighted_perk,
-                self.current_threshold.unwrap_or(1000),
+                self.highlighted_powerup,
             );
         } else {
             // Draw background with parallax effect
-            crate::graphics::update::draw_parallax_background(
+            graphics::update::draw_parallax_background(
                 &mut art_buffer,
                 &self.sprites,
                 self.stars_offset_x,
@@ -429,20 +456,24 @@ impl WasmGame {
             );
 
             // Draw food
-            crate::graphics::update::draw_food(&mut art_buffer, &self.food, &self.sprites);
+            graphics::update::draw_food(&mut art_buffer, &self.food, &self.sprites);
+
+            // Draw loot crate if active
+            graphics::update::draw_loot_crate(&mut art_buffer, &self.loot_crate, &self.sprites);
+
 
             // Draw snake
-            crate::graphics::update::draw_snake(&mut art_buffer, &self.player, &self.sprites);
+            graphics::update::draw_snake(&mut art_buffer, &self.player, &self.sprites);
 
             // Draw score text BEFORE scaling (only in normal game mode)
-            crate::graphics::update::draw_score_text(&mut art_buffer, self.score);
+            graphics::update::draw_score_text(&mut art_buffer, self.score);
         }
 
         // Scale the art buffer to the screen buffer
-        crate::graphics::render::scale_buffer_to_screen(&art_buffer, &mut self.pixel_buffer);
+        graphics::render::scale_buffer_to_screen(&art_buffer, &mut self.pixel_buffer);
 
         // Convert pixel buffer to ImageData and draw to canvas
-        crate::graphics::render::update_canvas(&self.pixel_buffer, &self.context)?;
+        graphics::render::update_canvas(&self.pixel_buffer, &self.context)?;
 
         Ok(())
     }
@@ -451,18 +482,18 @@ impl WasmGame {
     pub fn handle_key_down(&mut self, key_code: &str) {
         if self.game_over {
             // Allow restarting the game with Space key
-            if crate::input::handler::handle_game_over_input(key_code) {
+            if input::handler::handle_game_over_input(key_code) {
                 self.restart_game();
             }
             return;
         }
 
-        crate::input::handler::handle_key_down(
+        input::handler::handle_key_down(
             key_code,
             &mut self.player.direction,
             self.game_over,
-            self.in_perk_selection,
-            &mut self.perk_selection_keys,
+            self.in_powerup_selection,
+            &mut self.powerup_selection_keys,
         );
     }
 
@@ -473,8 +504,20 @@ impl WasmGame {
     }
 
     #[wasm_bindgen]
-    pub fn play_new_perk_sound(&self) {
+    pub fn play_new_powerup_sound(&self) {
         let js_code = "if (window.playSound) { window.playSound('new_perk'); }";
+        js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn play_powerup_sound(&self, sound_name: &str) {
+        let js_code = format!("if (window.playPowerupSound) {{ window.playPowerupSound('{}'); }}", sound_name);
+        js_sys::eval(&js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
+    }
+
+    #[wasm_bindgen]
+    pub fn play_crash_sound(&self) {
+        let js_code = "if (window.playCrashSound) { window.playCrashSound(); }";
         js_sys::eval(js_code).unwrap_or_else(|_| wasm_bindgen::JsValue::UNDEFINED);
     }
 
@@ -501,9 +544,10 @@ impl WasmGame {
         // Stop any playing music and restart background music
         self.stop_music();
         
-        crate::state::core::tick::restart_game(
+        state::core::tick::restart_game(
             &mut self.player,
             &mut self.food,
+            &mut self.loot_crate,
             &mut self.score,
             &mut self.game_over,
             &mut self.last_frame_time,
@@ -515,37 +559,57 @@ impl WasmGame {
             &mut self.game_over_frame,
             &mut self.game_over_darkness,
             &mut self.game_over_animation_time,
-            &mut self.perk_eligibility,
-            &mut self.selected_perk,
+            &mut self.last_loot_spawn_score,
+            &mut self.powerup_eligibility,
+            &mut self.selected_powerup,
             &mut self.food_score_value,
-            &mut self.in_perk_selection,
-            &mut self.highlighted_perk,
-            &mut self.perk_selection_keys,
+            &mut self.in_powerup_selection,
+            &mut self.highlighted_powerup,
+            &mut self.powerup_selection_keys,
+            &mut self.last_loot_crate_check_time,
         );
+        
+        // Reset crash sound state
+        self.crash_sound_played = false;
         
         // Resume background music after restart
         self.resume_music();
     }
 
-    fn handle_perk_selection(&mut self) {
-        if crate::state::core::perks::handle_perk_selection(
-            &mut self.perk_selection_keys,
-            &mut self.highlighted_perk,
-            &mut self.selected_perk,
-            &mut self.perk_eligibility,
-            &mut self.in_perk_selection,
-            self.current_threshold.unwrap_or(1000),
+    fn handle_powerup_selection(&mut self) {
+        if state::core::perks::handle_powerup_selection(
+            &mut self.powerup_selection_keys,
+            &mut self.highlighted_powerup,
+            &mut self.selected_powerup,
+            &mut self.powerup_eligibility,
+            &mut self.in_powerup_selection,
         ) {
-            // A perk was selected, apply its effect
-            if let Some(ref perk) = self.selected_perk {
-                crate::state::core::perks::apply_perk_effect(perk, &mut self.player.move_interval, &mut self.food_score_value);
+            // A powerup was selected, apply its effect
+            if let Some(ref powerup) = self.selected_powerup {
+                state::core::perks::apply_powerup_effect(powerup, &mut self.player.move_interval, &mut self.food_score_value);
+                
+                // Play special sound for each powerup
+                match powerup {
+                    state::core::perks::Perk::HungryWorm => {
+                        web_sys::console::log_1(&"Hungry Worm selected, playing apple sound".into());
+                        self.play_powerup_sound("apple"); // This will resume music when sound ends
+                    }
+                    state::core::perks::Perk::NeedForSpeed => {
+                        web_sys::console::log_1(&"Need 4 Speed selected, playing turbo sound".into());
+                        self.play_powerup_sound("turbo"); // This will resume music when sound ends
+                    }
+                }
+            } else {
+                // No powerup selected, resume music
+                web_sys::console::log_1(&"No powerup selected, resuming music".into());
+                self.resume_music();
             }
         }
     }
 
 
     fn update_game_over_animation(&mut self) {
-        if crate::state::core::tick::update_game_over_animation(
+        if state::core::tick::update_game_over_animation(
             &mut self.game_over_frame,
             &mut self.game_over_darkness,
             &mut self.game_over_animation_time,

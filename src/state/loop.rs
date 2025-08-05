@@ -1,4 +1,4 @@
-use crate::state::structs::{Snake, Food, Direction};
+use crate::state::structs::{Snake, Food, LootCrate, Direction};
 use crate::state::constants::graphics::{SNAKE_BODY_WIDTH, SNAKE_BODY_HEIGHT};
 use crate::state::constants::physics::{LOWER_BOUND_X, LOWER_BOUND_Y, UPPER_BOUND_X, UPPER_BOUND_Y};
 use crate::state::constants::graphics::{ART_WIDTH, ART_HEIGHT};
@@ -165,8 +165,8 @@ pub fn update_game_over_animation(
 ) -> bool {
     let current_time = js_sys::Date::now();
     
-    // Check if enough time has passed for next frame (200ms per frame)
-    if current_time - *game_over_animation_time >= 200.0 {
+    // Check if enough time has passed for next frame (600ms per frame)
+    if current_time - *game_over_animation_time >= 600.0 {
         *game_over_frame += 1;
         *game_over_darkness = (*game_over_darkness + 0.1).min(0.8);
         *game_over_animation_time = current_time;
@@ -177,4 +177,44 @@ pub fn update_game_over_animation(
         }
     }
     false
+}
+
+pub fn check_loot_crate_collision(
+    player: &Snake, 
+    loot_crate: &mut LootCrate,
+    powerup_eligibility: &mut bool,
+    in_powerup_selection: &mut bool,
+    highlighted_powerup: &mut Option<usize>,
+) -> bool {
+    // Check loot crate collision (same pattern as food)
+    if loot_crate.is_active {
+        if let Some(head) = player.body.first() {
+            let dx = head.x - loot_crate.position.x;
+            let dy = head.y - loot_crate.position.y;
+            let distance = (dx * dx + dy * dy).sqrt();
+            
+            // Check if loot crate is eaten (within 12 pixels, same as food)
+            if distance < 12.0 {
+                loot_crate.is_active = false;
+                
+                // Trigger powerup selection (instead of adding score like food does)
+                *powerup_eligibility = true;
+                *in_powerup_selection = true;
+                *highlighted_powerup = Some(1); // Default to first powerup
+                
+                return true; // Loot crate was eaten
+            }
+        }
+    }
+    false
+}
+
+pub fn update_loot_crate_sprite_animation(loot_crate: &mut LootCrate) {
+    let current_time = js_sys::Date::now();
+
+    // Update loot crate animation frame (toggle every 750 for glowing effect)
+    if current_time - loot_crate.last_sprite_frame_index_update_time >= 750.0 {
+        loot_crate.sprite_frame_index = (loot_crate.sprite_frame_index + 1) % 2;
+        loot_crate.last_sprite_frame_index_update_time = current_time;
+    }
 }

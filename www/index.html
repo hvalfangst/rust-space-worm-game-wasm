@@ -376,7 +376,7 @@
                 <ul>
                     <li>🍎 <span class="highlight">Eat food</span> to grow</li>
                     <li>💀 <span class="highlight">Avoid collision</span> with your body</li>
-                    <li>🎯 Earn a <span class="highlight">perks</span> as you grow</li>
+                    <li>🎯 Collect <span class="highlight">loot boxes</span> with powerups</li>
                 </ul>
             </div>
         </div>
@@ -406,7 +406,7 @@
                     
                     <div class="key-group">
                         <div class="key space">SPACE</div>
-                        <div class="key-description">Choose perk</div>
+                        <div class="key-description">Choose powerup</div>
                     </div>
                 </div>
 
@@ -417,8 +417,8 @@
                     </div>
                     
                     <div class="key-group">
-                        <div class="key space">Choose perk</div>
-                        <div class="key-description">Choose perk</div>
+                        <div class="key space">Choose powerup</div>
+                        <div class="key-description">Choose powerup</div>
                     </div>
                 </div>
             </div>
@@ -488,11 +488,6 @@
                         const tailPixels = Array.from(tailData.slice(2));
                         tailFrames.push({ width: tailWidth, height: tailHeight, pixels: tailPixels });
                     }
-
-                    const tailData1 = await load_sprite_frame_from_url('./assets/sprites/tail.png', 6, 6, 1);
-                    const tailWidth1 = tailData1[0];
-                    const tailHeight1 = tailData1[1];
-                    const tailPixels1 = Array.from(tailData1.slice(2));
 
                     // Load food sprites - 2 frames from 16x16 sprite sheet
                     const foodFrames = []
@@ -576,29 +571,67 @@
                         game.add_game_over_sprite(frame.width, frame.height, frame.pixels);
                     }
                     
-                    // Load perk sprites - 2 frames from perks.png (256x224 each)
-                    const perkFrames = [];
-                    for (let i = 0; i < 8; i++) {
-                        const perkData = await load_sprite_frame_from_url('./assets/sprites/perks.png', 128, 112, i);
-                        const perkWidth = perkData[0];
-                        const perkHeight = perkData[1];
-                        const perkPixels = Array.from(perkData.slice(2));
-                        perkFrames.push({ width: perkWidth, height: perkHeight, pixels: perkPixels });
+                    // Load powerup sprites - 2 frames from powerups.png (128x112 each)
+                    const powerupFrames = [];
+                    for (let i = 0; i < 2; i++) {
+                        const powerupData = await load_sprite_frame_from_url('./assets/sprites/powerups.png', 128, 112, i);
+                        const powerupWidth = powerupData[0];
+                        const powerupHeight = powerupData[1];
+                        const powerupPixels = Array.from(powerupData.slice(2));
+                        powerupFrames.push({ width: powerupWidth, height: powerupHeight, pixels: powerupPixels });
                     }
                     
-                    // Set all perk frames
-                    for (const frame of perkFrames) {
-                        game.add_perk_sprite(frame.width, frame.height, frame.pixels);
+                    // Set all powerup frames
+                    for (const frame of powerupFrames) {
+                        game.add_powerup_sprite(frame.width, frame.height, frame.pixels);
                     }
                     
-                    // Load choose perk sprite (single frame)
-                    const choosePerkData = await load_sprite_frame_from_url('./assets/sprites/choose_perk.png', 256, 112, 0);
-                    const choosePerkWidth = choosePerkData[0];
-                    const choosePerkHeight = choosePerkData[1];
-                    const choosePerkPixels = Array.from(choosePerkData.slice(2));
+                    // Load choose powerup sprite (single frame)
+                    const choosePowerupData = await load_sprite_frame_from_url('./assets/sprites/powerup_grid.png', 256, 112, 0);
+                    const choosePowerupWidth = choosePowerupData[0];
+                    const choosePowerupHeight = choosePowerupData[1];
+                    const choosePowerupPixels = Array.from(choosePowerupData.slice(2));
                     
-                    // Set choose perk sprite
-                    game.add_choose_perk_sprite(choosePerkWidth, choosePerkHeight, choosePerkPixels);
+                    // Set choose powerup sprite
+                    game.add_choose_powerup_sprite(choosePowerupWidth, choosePowerupHeight, choosePowerupPixels);
+
+                    // Load loot crate sprites (try to find 2 consecutive frames with content)
+                    // The sprite sheet is 256x112, so it contains (256/16) x (112/16) = 16 x 7 = 112 frames
+                    const lootCrateFrames = [];
+                    
+                    // Try different starting positions to find the loot crate sprites
+                    let foundFrames = 0;
+                    for (let i = 0; i < 112 && foundFrames < 2; i++) {
+                        try {
+                            const lootCrateData = await load_sprite_frame_from_url('./assets/sprites/loot_crate.png', 16, 16, i);
+                            const lootCrateWidth = lootCrateData[0];
+                            const lootCrateHeight = lootCrateData[1];
+                            const lootCratePixels = Array.from(lootCrateData.slice(2));
+                            
+                            // Check if this frame has non-transparent pixels
+                            const hasContent = lootCratePixels.some(pixel => (pixel >>> 24) > 0);
+                            if (hasContent) {
+                                console.log(`Found loot crate sprite at frame ${i}`);
+                                lootCrateFrames.push({ width: lootCrateWidth, height: lootCrateHeight, pixels: lootCratePixels });
+                                foundFrames++;
+                            }
+                        } catch (e) {
+                            console.log(`Frame ${i} failed to load:`, e.message);
+                            break; // Stop if we hit out of bounds
+                        }
+                    }
+                    
+                    if (lootCrateFrames.length === 0) {
+                        console.warn('No loot crate sprites found, using placeholder');
+                        // Create a simple colored square as fallback
+                        const placeholderPixels = new Array(16 * 16).fill(0xFF00FFFF); // Magenta square
+                        lootCrateFrames.push({ width: 16, height: 16, pixels: placeholderPixels });
+                    }
+
+                    // Set all loot crate frames
+                    for (const frame of lootCrateFrames) {
+                        game.add_loot_crate_sprite(frame.width, frame.height, frame.pixels);
+                    }
 
                     // Get the canvas and add it to the page
                     const canvas = game.get_canvas();
@@ -746,7 +779,10 @@
                         const soundsToLoad = [
                             { name: 'eat', url: './assets/audio/eat.mp3' },
                             { name: 'new_perk', url: './assets/audio/new_perk.mp3' },
-                            { name: 'music_0', url: './assets/audio/music_0.mp3' }
+                            { name: 'apple', url: './assets/audio/apple.mp3' },
+                            { name: 'turbo', url: './assets/audio/turbo.mp3' },
+                            { name: 'crash_car', url: './assets/audio/crash_car.mp3' },
+                            { name: 'space_worm', url: './assets/audio/space_worm.mp3' }
                         ];
 
                         soundsToLoad.forEach(sound => {
@@ -772,8 +808,53 @@
                             }
                         };
 
+                        // Function to play powerup sound and resume music afterward
+                        window.playPowerupSound = function(soundName) {
+                            if (audioBuffers[soundName]) {
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffers[soundName];
+                                source.connect(audioContext.destination);
+                                
+                                // Resume music when sound ends
+                                source.onended = function() {
+                                    setTimeout(() => {
+                                        if (window.resumeMusic) {
+                                            window.resumeMusic();
+                                        }
+                                    }, 100); // Small delay to ensure clean transition
+                                };
+                                
+                                source.start();
+                            }
+                        };
+
+                        // Function to play crash sound and notify game when it ends
+                        window.playCrashSound = function(onEndCallback) {
+                            if (audioBuffers['crash_car']) {
+                                const source = audioContext.createBufferSource();
+                                source.buffer = audioBuffers['crash_car'];
+                                source.connect(audioContext.destination);
+                                
+                                // Call the callback when sound ends
+                                source.onended = function() {
+                                    if (onEndCallback) {
+                                        onEndCallback();
+                                    }
+                                };
+                                
+                                source.start();
+                                console.log('Playing crash sound - game over animation paused');
+                            } else {
+                                // If sound not loaded, call callback immediately
+                                if (onEndCallback) {
+                                    onEndCallback();
+                                }
+                            }
+                        };
+
                         // Function to play music (with looping and volume control)
-                        window.playMusic = function(musicName, volume = 1.0) {
+                        window.playMusic = function(musicName, volume = 2.0) {
+                            console.log(`Playing music: ${musicName} at volume ${volume}`);
                             // Stop current music if playing
                             if (currentMusicSource) {
                                 currentMusicSource.stop();
@@ -796,6 +877,9 @@
                                 
                                 source.start();
                                 currentMusicSource = source;
+                                console.log(`Music started successfully: ${musicName}`);
+                            } else {
+                                console.log(`Music buffer not found: ${musicName}`);
                             }
                         };
 
@@ -817,20 +901,38 @@
 
                         // Function to resume music
                         window.resumeMusic = function() {
+                            console.log('Resuming music at 100% volume');
                             if (window.playMusic) {
-                                window.playMusic('music_0', 0.5);
+                                window.playMusic('space_worm', 2.0);
                             }
                         };
 
-                        // Resume audio context on first user interaction (required by browsers)
+                        // Resume audio context and start music on first user interaction (required by browsers)
+                        let musicStarted = false;
                         const resumeAudio = () => {
                             if (audioContext.state === 'suspended') {
                                 audioContext.resume();
+                            }
+                            
+                            // Start music on first interaction if not already started
+                            if (!musicStarted) {
+                                console.log('First user interaction - starting music');
+                                if (window.playMusic) {
+                                    window.playMusic('space_worm', 2.0);
+                                    musicStarted = true;
+                                    
+                                    // Hide the "click to start" message if it exists
+                                    const clickMessage = document.getElementById('clickToStart');
+                                    if (clickMessage) {
+                                        clickMessage.style.display = 'none';
+                                    }
+                                }
                             }
                         };
 
                         document.addEventListener('click', resumeAudio);
                         document.addEventListener('touchstart', resumeAudio);
+                        document.addEventListener('keydown', resumeAudio);
                     }
 
                     setupMobileControls();
@@ -839,12 +941,28 @@
                     setupAudio();
                     console.log('Mobile controls and audio set up');
                     
-                    // Start background music at half volume
-                    setTimeout(() => {
-                        if (window.playMusic) {
-                            window.playMusic('music_0', 0.5);
-                        }
-                    }, 1000); // Small delay to ensure audio context is ready
+                    // Note: Music will start on first user interaction due to browser autoplay policies
+                    console.log('Audio system ready - music will start on first click/key press');
+                    
+                    // Add a subtle message about clicking to start music
+                    const gameContainer = document.querySelector('.game-container');
+                    const clickToStartDiv = document.createElement('div');
+                    clickToStartDiv.id = 'clickToStart';
+                    clickToStartDiv.style.cssText = `
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: rgba(64, 224, 208, 0.1);
+                        border: 1px solid rgba(64, 224, 208, 0.3);
+                        border-radius: 5px;
+                        padding: 8px 12px;
+                        font-size: 12px;
+                        color: #40e0d0;
+                        pointer-events: none;
+                        z-index: 1000;
+                    `;
+                    clickToStartDiv.textContent = '🔊 Click anywhere to start music';
+                    gameContainer.appendChild(clickToStartDiv);
 
                     // Game loop
                     console.log('Starting game loop...');

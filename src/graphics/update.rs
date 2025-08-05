@@ -2,37 +2,27 @@ use crate::graphics::sprites::{draw_sprite, draw_sprite_with_gradient_shading};
 use crate::graphics::text::{get_font_data, BitFont};
 use crate::graphics::sprites::SpriteMaps;
 use crate::state::constants::graphics::{ART_WIDTH, ART_HEIGHT};
-use crate::state::structs::{Direction, Snake, Food};
-use crate::state::core::perks::{get_perks_for_threshold, Perk};
+use crate::state::structs::{Direction, Snake, Food, LootCrate};
+use crate::state::core::perks::{get_default_powerups, Perk};
 
-fn get_perk_sprite_indices(threshold: u32) -> (usize, usize) {
-    let (perk1, perk2) = get_perks_for_threshold(threshold);
-    (get_perk_sprite_index(&perk1), get_perk_sprite_index(&perk2))
+fn get_powerup_sprite_indices() -> (usize, usize) {
+    let (powerup1, powerup2) = get_default_powerups();
+    (get_powerup_sprite_index(&powerup1), get_powerup_sprite_index(&powerup2))
 }
 
-fn get_perk_sprite_index(perk: &Perk) -> usize {
-    match perk {
+fn get_powerup_sprite_index(powerup: &Perk) -> usize {
+    match powerup {
         Perk::NeedForSpeed => 0,
         Perk::HungryWorm => 1,
-        Perk::PerkThree => 2,
-        Perk::PerkFour => 3,
-        Perk::PerkFive => 4,
-        Perk::PerkSix => 5,
-        Perk::PerkSeven => 6,
-        Perk::PerkEight => 7,
+        _ => 0
     }
 }
 
-fn get_perk_info(perk: &Perk) -> (&'static str, &'static str) {
-    match perk {
+fn get_powerup_info(powerup: &Perk) -> (&'static str, &'static str) {
+    match powerup {
         Perk::NeedForSpeed => ("Need 4 Speed", "+25% movement speed"),
         Perk::HungryWorm => ("Hungry Worm", "2x score from food"),
-        Perk::PerkThree => ("Perk Three", "Special ability 3"),
-        Perk::PerkFour => ("Perk Four", "Special ability 4"),
-        Perk::PerkFive => ("Perk Five", "Special ability 5"),
-        Perk::PerkSix => ("Perk Six", "Special ability 6"),
-        Perk::PerkSeven => ("Perk Seven", "Special ability 7"),
-        Perk::PerkEight => ("Perk Eight", "Special ability 8"),
+        _ => ("Need 4 Speed", "+25% movement speed"),
     }
 }
 
@@ -72,6 +62,22 @@ pub fn draw_food(art_buffer: &mut [u32], food: &Food, sprites: &SpriteMaps) {
                 None,
             );
         }
+    }
+}
+
+pub fn draw_loot_crate(art_buffer: &mut [u32], loot_crate: &LootCrate, sprites: &SpriteMaps) {
+    if loot_crate.is_active && !sprites.loot_crate.is_empty() {
+        // Use the appropriate sprite frame index, clamped to available sprites
+        let sprite_index = loot_crate.sprite_frame_index.min(sprites.loot_crate.len() - 1);
+
+        draw_sprite(
+            loot_crate.position.x as usize,
+            loot_crate.position.y as usize,
+            &sprites.loot_crate[sprite_index],
+            art_buffer,
+            ART_WIDTH,
+            None,
+        );
     }
 }
 
@@ -260,50 +266,49 @@ pub fn draw_game_over_screen(
     );
 }
 
-pub fn draw_perk_selection_screen(
+pub fn draw_powerup_selection_screen(
     art_buffer: &mut [u32],
     sprites: &SpriteMaps,
-    highlighted_perk: Option<usize>,
-    current_threshold: u32,
+    highlighted_powerup: Option<usize>,
 ) {
-    // Draw the top part of the perk screen (choose perk prompt)
-    if !sprites.choose_perk.is_empty() {
+    // Draw the top part of the powerup screen (choose powerup prompt)
+    if !sprites.choose_powerup.is_empty() {
         draw_sprite(
             0,
             0,
-            &sprites.choose_perk[0],
+            &sprites.choose_powerup[0],
             art_buffer,
             ART_WIDTH,
             None,
         );
     }
     
-    // Draw the "Select perk" text at the top of the screen
+    // Draw the "Select powerup" text at the top of the screen
     let font_data = get_font_data();
     let bit_font = BitFont { chars: font_data };
     bit_font.draw_text_smooth_scaled(
         art_buffer,
         ART_WIDTH,
-        "Select perk",
-        57,
+        "Pick power",
+        45,
         25,
         0xFFFFFFFF, // White color
         1.7 // Scale
     );
     
-    // Determine which perks to display based on threshold
-    let perk_sprite_indices = get_perk_sprite_indices(current_threshold);
+    // Get the default powerup sprite indices
+    let powerup_sprite_indices = get_powerup_sprite_indices();
     
-    // Draw the two perk options
-    let perk_positions = [(0, ART_HEIGHT / 2), (128, ART_HEIGHT / 2)];
-    let sprite_indices = [perk_sprite_indices.0, perk_sprite_indices.1];
+    // Draw the two powerup options
+    let powerup_positions = [(0, ART_HEIGHT / 2), (128, ART_HEIGHT / 2)];
+    let sprite_indices = [powerup_sprite_indices.0, powerup_sprite_indices.1];
     
-    for (i, &(x, y)) in perk_positions.iter().enumerate() {
-        let perk_index = i + 1;
-        let is_highlighted = highlighted_perk == Some(perk_index);
+    for (i, &(x, y)) in powerup_positions.iter().enumerate() {
+        let powerup_index = i + 1;
+        let is_highlighted = highlighted_powerup == Some(powerup_index);
         let sprite_index = sprite_indices[i];
         
-        if sprite_index < sprites.perks.len() {
+        if sprite_index < sprites.powerups.len() {
             let darkness_factor = if is_highlighted {
                 Some(0.8) // Highlighted - slightly dim
             } else {
@@ -313,7 +318,7 @@ pub fn draw_perk_selection_screen(
             draw_sprite(
                 x,
                 y,
-                &sprites.perks[sprite_index],
+                &sprites.powerups[sprite_index],
                 art_buffer,
                 ART_WIDTH,
                 darkness_factor,
@@ -321,32 +326,32 @@ pub fn draw_perk_selection_screen(
         }
     }
     
-    // Draw information about the highlighted perk
-    if let Some(perk_index) = highlighted_perk {
-        let (perk1, perk2) = get_perks_for_threshold(current_threshold);
-        let selected_perk = match perk_index {
-            1 => &perk1,
-            2 => &perk2,
-            _ => &perk1, // Default fallback
+    // Draw information about the highlighted powerup
+    if let Some(powerup_index) = highlighted_powerup {
+        let (powerup1, powerup2) = get_default_powerups();
+        let selected_powerup = match powerup_index {
+            1 => &powerup1,
+            2 => &powerup2,
+            _ => &powerup1, // Default fallback
         };
-        let (perk_title, perk_description) = get_perk_info(selected_perk);
+        let (powerup_title, powerup_description) = get_powerup_info(selected_powerup);
         
-        // Draw the first line of perk information
+        // Draw the first line of powerup information
         bit_font.draw_text_smooth_scaled(
             art_buffer,
             ART_WIDTH,
-            perk_title,
+            powerup_title,
             75, // X position
             55, // Y position
             0xFFFFD700, // Golden color with full alpha
             1.0 // Scale
         );
         
-        // Draw the second line of perk information
+        // Draw the second line of powerup information
         bit_font.draw_text_smooth_scaled(
             art_buffer,
             ART_WIDTH,
-            perk_description,
+            powerup_description,
             52, // X position
             69, // Y position
             0xCCCCCCFF, // Slightly grey color with full alpha
