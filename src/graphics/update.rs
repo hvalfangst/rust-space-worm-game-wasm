@@ -289,7 +289,7 @@ pub fn draw_powerup_selection_screen(
     bit_font.draw_text_smooth_scaled(
         art_buffer,
         ART_WIDTH,
-        "Pick power",
+        " Select power",
         45,
         25,
         0xFFFFFFFF, // White color
